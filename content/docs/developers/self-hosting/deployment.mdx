@@ -1,0 +1,179 @@
+---
+title: Application Deployment
+description: Running the Frontend and Proxy via Docker, and the Backend via Native Service.
+---
+
+import { Container, Server, Globe, ShieldCheck, Terminal } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI uses a **Hybrid Deployment** strategy.
+
+1.  **Docker Cluster:** Frontend, Proxy, and Background Processor. These are stateless web services that scale easily in containers.
+2.  **Native Node:** Backend App. This runs directly on the host OS (Windows/Linux) to maximize audio performance and manage UDP port ranges without NAT overhead.
+
+---
+
+## Part 1: The Docker Cluster (Web Services)
+
+We will use `docker-compose` to spin up the management layer.
+
+<Steps>
+<Step>
+### Prepare Compose File
+Create a file named `apps.docker-compose.yml`.
+
+```yaml
+version: '3.5'
+
+services:
+  # -----------------------------
+  # 1. The Dashboard (Frontend)
+  # -----------------------------
+  frontend:
+    image: ghcr.io/abdofallah/iqra-frontend:latest
+    ports:
+      - "80:80"
+    environment:
+      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
+      - General__ApiSecretToken=my-secret-token
+    depends_on:
+      - mongodb # Assumes you are on the same network
+
+  # -----------------------------
+  # 2. The Gateway (Proxy)
+  # -----------------------------
+  proxy:
+    image: ghcr.io/abdofallah/iqra-proxy:latest
+    ports:
+      - "8080:80"
+    environment:
+      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
+      - General__ApiSecretToken=my-secret-token
+
+  # -----------------------------
+  # 3. The Janitor (Background)
+  # -----------------------------
+  background:
+    image: ghcr.io/abdofallah/iqra-background:latest
+    environment:
+      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
+```
+</Step>
+
+<Step>
+### Launch
+```bash
+docker-compose -f apps.docker-compose.yml up -d
+```
+Your dashboard should now be accessible at `http://localhost`.
+</Step>
+</Steps>
+
+---
+
+## Part 2: The Backend Node (Native)
+
+The Backend App requires raw access to the network interface for RTP Audio (UDP Ports 10000-20000). We will run this as a native service.
+
+### Prerequisites
+*   **Operating System:** Ubuntu 22.04 LTS (Recommended) or Windows Server.
+*   **Runtime:** [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+
+<Steps>
+<Step>
+### Publish Artifacts
+Clone the repository and build the backend project in Release mode.
+
+```bash
+git clone https://github.com/abdofallah/IqraAI.git
+cd IqraAI/ProjectIqraBackendApp
+dotnet publish -c Release -o /opt/iqra-backend
+```
+</Step>
+
+<Step>
+### Configure
+Navigate to the output directory and edit `appsettings.json`.
+
+```bash
+cd /opt/iqra-backend
+nano appsettings.json
+```
+Ensure the `ConnectionStrings` point to your database (if DB is in Docker, use `localhost` or the Docker Host IP).
+</Step>
+
+<Step>
+### Systemd Service (Linux)
+Create a service file to keep the app running in the background.
+
+```ini title="/etc/systemd/system/iqra-backend.service"
+[Unit]
+Description=Iqra AI Backend
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/iqra-backend
+ExecStart=/usr/bin/dotnet /opt/iqra-backend/ProjectIqraBackendApp.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=iqra-backend
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start it:
+```bash
+sudo systemctl enable iqra-backend
+sudo systemctl start iqra-backend
+```
+</Step>
+
+<Step>
+### Firewall Rules
+You must open the ports for **SIP/RTP** traffic.
+
+```bash
+# Allow internal API communication
+sudo ufw allow 5000/tcp
+
+# Critical: Allow Audio Media Range (UDP)
+sudo ufw allow 10000:20000/udp
+```
+</Step>
+</Steps>
+
+---
+
+## Part 3: Reverse Proxy (SSL)
+
+For **WebRTC** to work (Web Campaigns), the browser **requires HTTPS**. You cannot use HTTP.
+
+We recommend using **Nginx** as a reverse proxy in front of the Frontend.
+
+```nginx title="/etc/nginx/sites-available/iqra"
+server {
+    listen 443 ssl;
+    server_name app.your-domain.com;
+
+    ssl_certificate /etc/letsencrypt/live/app.your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.your-domain.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:80; # Points to Frontend Docker Container
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+<Callout type="tip" title="Cloudflare">
+  If you use Cloudflare, enable **WebSockets** in the Network settings panel to ensure real-time audio flows correctly.
+</Callout>

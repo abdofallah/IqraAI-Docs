@@ -1,0 +1,168 @@
+---
+title: Creating an Action
+description: Defining input schemas, execution logic, and output ports for a script node.
+---
+
+import { Code, FileJson, GitFork, ArrowRightCircle, Zap } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+An **Action** represents a specific function within your App (e.g., "Book Meeting", "Get Contact", "Send SMS").
+
+In the Script Builder, an Action appears as a **Node**. To create one, you need two files in the same directory:
+1.  **`CreateContact.json`**: Defines the **UI** (Fields, Validation).
+2.  **`CreateContact.cs`**: Defines the **Logic** (API Call).
+
+---
+
+## 1. Defining the UI (JSON Schema)
+
+We use standard **JSON Schema** to tell the frontend how to render the form. This allows for complex, dynamic UIs without writing React code.
+
+Create a file named `CreateContact.json` in your Actions folder.
+
+```json title="CreateContact.json"
+{
+  "type": "object",
+  "title": "Create Contact",
+  "required": ["email", "firstName"],
+  "properties": {
+    "email": {
+      "type": "string",
+      "title": "Email Address",
+      "description": "The primary email of the contact."
+    },
+    "firstName": {
+      "type": "string",
+      "title": "First Name"
+    },
+    "ownerId": {
+      "type": "string",
+      "title": "Contact Owner",
+      "x-fetcher": "GetUsers" 
+    }
+  }
+}
+```
+
+<Callout type="info" title="x-fetcher">
+  The `x-fetcher` property tells the frontend to render a **Dynamic Dropdown** instead of a text input. Read more in the [Data Fetchers](/docs/developers/flowapp/data-fetchers) guide.
+</Callout>
+
+---
+
+## 2. Implementing the Logic (C#)
+
+Create a class `CreateContactAction.cs`.
+
+<Callout type="warn" title="Source Generator Magic">
+  Iqra AI uses a **C# Source Generator** to compile your JSON schema directly into the DLL for performance.
+  1. Your class **must** be `partial`.
+  2. You do **not** need to implement `GetInputSchemaJson()` manually. The compiler does it for you by looking for the `.json` file with the matching name.
+</Callout>
+
+<Steps>
+<Step>
+### Boilerplate & Metadata
+Define the identity of the action. Note the `partial` keyword.
+
+```csharp
+// [!code word:partial]
+public partial class CreateContactAction : IFlowAction
+{
+    private readonly HubSpotApp _app;
+
+    public CreateContactAction(HubSpotApp app)
+    {
+        _app = app;
+    }
+
+    public string ActionKey => "CreateContact";
+    public string Name => "Create Contact";
+    public string Description => "Adds a new contact to CRM.";
+
+    // GetInputSchemaJson() is auto-generated! 
+    // Do not write it yourself.
+}
+```
+</Step>
+
+<Step>
+### Output Ports
+Define the possible exit paths for the node in the script graph.
+
+```csharp
+public IReadOnlyList<ActionOutputPort> GetOutputPorts()
+{
+    return new List<ActionOutputPort>
+    {
+        new ActionOutputPort { Key = "success", Label = "Success" },
+        new ActionOutputPort { Key = "duplicate", Label = "Already Exists" },
+        new ActionOutputPort { Key = "error", Label = "Error" }
+    };
+}
+```
+</Step>
+
+<Step>
+### Execution Logic
+Implement `ExecuteAsync`. This is where you parse inputs and call the API.
+
+**Note:** The `resolvedInput` passed here has already had all Scriban templates (e.g., `{{ user.name }}`) resolved to their final string values.
+
+```csharp
+public async Task<ActionExecutionResult> ExecuteAsync(
+    JsonElement input, 
+    BusinessAppIntegration? integration)
+{
+    try 
+    {
+        // 1. Setup Client
+        var apiKey = integration?.DecryptedFields["ApiKey"];
+        var client = _app.CreateClient(apiKey);
+
+        // 2. Parse Input (System.Text.Json)
+        var email = input.GetProperty("email").GetString();
+        var name = input.GetProperty("firstName").GetString();
+
+        // 3. Call API
+        var payload = new { properties = new { email, firstname = name } };
+        var response = await client.PostAsJsonAsync("/crm/v3/objects/contacts", payload);
+
+        // 4. Handle Specific Logic Branches
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            return ActionExecutionResult.SuccessPort("duplicate", new { msg = "Contact exists" });
+        }
+
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+            // Return data to the context
+            return ActionExecutionResult.SuccessPort("success", data);
+        }
+
+        return ActionExecutionResult.Failure("API_ERROR", response.ReasonPhrase);
+    }
+    catch (Exception ex)
+    {
+        return ActionExecutionResult.Failure("EXCEPTION", ex.Message);
+    }
+}
+```
+</Step>
+</Steps>
+
+## 3. Public Actions (Optional Auth)
+
+If your action does not require authentication (e.g., "Get Weather"), you can mark it as public.
+
+```csharp
+public bool RequiresIntegration => false;
+
+public async Task<ActionExecutionResult> ExecuteAsync(
+    JsonElement input, 
+    BusinessAppIntegration? integration) // integration will be null
+{
+    // ... logic without API key
+}
+```

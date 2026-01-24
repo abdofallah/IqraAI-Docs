@@ -1,0 +1,74 @@
+---
+title: Creating an App
+description: Implementing the IFlowApp interface to define your integration container.
+---
+
+import { Blocks, Key, ShieldCheck, Box } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **App Container** is the entry point for your integration. It tells the system "I exist," provides metadata like the name and icon.
+
+## 1. Directory Setup
+
+Create a new folder inside `IqraInfrastructure/Managers/FlowApp/Apps/`. The name should match your integration (e.g., `HubSpot`).
+
+Inside, create a class file named `HubSpotApp.cs`.
+
+## 2. Implementing IFlowApp
+
+Your class must implement the `IFlowApp` interface.
+
+```csharp
+using IqraCore.Interfaces.FlowApp;
+
+public class HubSpotApp : IFlowApp
+{
+    // Unique system identifier (snake_case recommended)
+    public string AppKey => "hubspot"; 
+    
+    // Display name in the Script Builder
+    public string Name => "HubSpot"; 
+    
+    // URL to a square SVG/PNG icon
+    public string IconUrl => "https://example.com/hubspot-icon.png"; 
+
+    // The Key of the Integration defined in Admin Dashboard
+    // Set to null if the app is public (no API Key required)
+    public string? IntegrationType => "HubSpot"; 
+
+    // Lists to hold your Actions and Fetchers
+    public IReadOnlyList<IFlowAction> Actions { get; }
+    public IReadOnlyList<IFlowDataFetcher> DataFetchers { get; }
+
+    // Constructor for Dependency Injection
+    public HubSpotApp(IHttpClientFactory httpClientFactory)
+    {
+        // Initialize your actions here
+        Actions = new List<IFlowAction> 
+        {
+            new CreateContactAction(this) 
+        };
+        
+        DataFetchers = new List<IFlowDataFetcher>();
+    }
+}
+```
+
+## 3. Handling Authentication
+
+Most apps require an API Key or OAuth Token.
+
+### The Integration Link
+The `IntegrationType` property links your code to the **Service Registry** in the [Admin Dashboard](/developers/admin/services).
+*   **Private App:** Set `IntegrationType => "HubSpot"`. The system will force the user to select valid HubSpot credentials before adding the node.
+*   **Public App:** Set `IntegrationType => null`. The app is considered open (e.g., "Weather" or "Currency Converter"). No API key is required from the user.
+
+## 4. Registration (Auto-Discovery)
+
+You do **not** need to register your app manually in `Program.cs`.
+
+The `FlowAppManager` uses **Reflection** to scan the assembly on startup. As long as your class implements `IFlowApp` and is not abstract, it will be discovered and registered automatically.
+
+<Callout type="info" title="Dependency Injection">
+  Your App class supports **Constructor Injection**. You can request services like `IHttpClientFactory`, `ILogger`, or `IConfiguration` in your constructor, and the system will provide them.
+</Callout>

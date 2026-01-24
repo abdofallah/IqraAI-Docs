@@ -1,0 +1,53 @@
+---
+title: Google Gemini
+description: Connecting Google's Gemini models via Google AI Studio.
+---
+
+import { CloudCog, Zap, Gauge } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Google's **Gemini** models are excellent choices for Voice AI due to their massive context window and speed. Specifically, **Gemini 1.5 Flash** is highly recommended for low-latency conversational agents.
+
+## Getting Credentials
+
+We use **Google AI Studio** to generate API keys.
+
+<Steps>
+<Step>
+### Access Google AI Studio
+Navigate to [aistudio.google.com](https://aistudio.google.com/). You will need a Google account.
+</Step>
+
+<Step>
+### Create API Key
+1.  Click on **Get API key** in the left sidebar.
+2.  Click **Create API key**.
+3.  You can choose to create a key in a new project or an existing Google Cloud project.
+4.  Copy the generated key string (starts with `AIza...`).
+</Step>
+
+<Step>
+### Connect to Iqra AI
+1.  Navigate to **Business Dashboard** -> **Integrations**.
+2.  Click **Add Integration** -> **Google Gemini**.
+3.  Paste your **API Key**.
+4.  Give it a name (e.g., "Google AI Studio").
+</Step>
+</Steps>
+
+## Recommended Models
+
+When configuring your [Agent](/build/agent/intelligence), you will choose between different Gemini versions.
+
+<Cards>
+  <Card icon={<Zap />} title="Gemini 1.5 Flash">
+    **Recommended for Voice.** Extremely fast inference speed and low cost. Ideal for real-time conversation where latency is the priority.
+  </Card>
+  <Card icon={<CloudCog />} title="Gemini 1.5 Pro">
+    **High Intelligence.** Better reasoning capabilities and instruction following, but slightly higher latency. Use this for complex logic or deep analysis tasks.
+  </Card>
+</Cards>
+
+<Callout type="tip" title="Safety Settings">
+  Google models have strict safety filters by default. If your agent discusses sensitive topics (e.g., medical procedures), you may need to adjust the safety threshold in your Agent Configuration to prevent refusal of service.
+</Callout>

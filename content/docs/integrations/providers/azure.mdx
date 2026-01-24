@@ -1,0 +1,97 @@
+---
+title: Microsoft Azure
+description: Connecting Azure OpenAI and Azure Speech services.
+---
+
+import { CloudCog, Cable, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Microsoft Azure provides enterprise-grade AI infrastructure. You can use Azure for both **Intelligence (LLM)** via Azure OpenAI and **Voice (TTS/STT)** via Azure Speech Services.
+
+## Part 1: Azure OpenAI (LLM)
+
+To use Azure's GPT models, you must create a resource and then **deploy** a model inside it.
+
+<Steps>
+<Step>
+### Create Resource
+1.  Log in to the [Azure Portal](https://portal.azure.com).
+2.  Search for **"Azure OpenAI"** and create a new resource.
+3.  **Region:** Choose a region close to your target audience (e.g., `East US`).
+4.  Wait for the resource to be provisioned.
+</Step>
+
+<Step>
+### Deploy a Model
+**This is the most critical step.** Just creating the resource is not enough.
+
+1.  Go to the [Azure OpenAI Studio](https://oai.azure.com/).
+2.  Select your newly created resource.
+3.  Navigate to **Deployments** -> **Create new deployment**.
+4.  **Select Model:** Choose the base model (e.g., `gpt-4o` or `gpt-35-turbo`).
+5.  **Deployment Name:** Give it a name (e.g., `iqra-gpt4o`).
+    *   *Note:* You will need this exact name later.
+</Step>
+
+<Step>
+### Get Credentials
+Back in the Azure Portal (Resource Overview):
+1.  Go to **Keys and Endpoint**.
+2.  Copy **Key 1**.
+3.  Copy the **Endpoint** URL (e.g., `https://my-resource.openai.azure.com/`).
+</Step>
+
+<Step>
+### Connect to Iqra AI
+In the Iqra AI **Integrations Tab**, click **Add Integration** -> **Azure OpenAI**.
+
+Fill in the fields:
+*   **API Key:** Your Key 1.
+*   **Endpoint:** Your Endpoint URL.
+*   **Deployment Name:** The name you chose in Step 2 (e.g., `iqra-gpt4o`).
+*   **API Version:** (Optional) Default is usually fine, or check Azure docs for the latest (e.g., `2024-02-15-preview`).
+</Step>
+</Steps>
+
+<Callout type="warn" title="Common Mistake">
+  Do not confuse **Model Name** (`gpt-4`) with **Deployment Name** (`my-deployment-name`). Iqra AI requires the **Deployment Name** to route the request correctly.
+</Callout>
+
+---
+
+## Part 2: Azure Speech (TTS & STT)
+
+Azure Speech services are separate from OpenAI. You typically need a "Speech Services" resource.
+
+<Steps>
+<Step>
+### Create Resource
+1.  In Azure Portal, search for **"Speech Services"**.
+2.  Create a new resource.
+3.  **Region:** **Crucial.** Ensure this matches your Phone Number region if possible for lowest latency.
+</Step>
+
+<Step>
+### Get Credentials
+1.  Go to **Keys and Endpoint**.
+2.  Copy **Key 1**.
+3.  Copy the **Location/Region** (e.g., `eastus`, `francecentral`).
+</Step>
+
+<Step>
+### Connect to Iqra AI
+In the Iqra AI **Integrations Tab**, click **Add Integration** -> **Azure Speech**.
+
+Fill in the fields:
+*   **API Key:** Your Key 1.
+*   **Region:** The region code (e.g., `eastus`).
+</Step>
+</Steps>
+
+## Why use Azure?
+
+| Feature | Azure | Standard OpenAI |
+| :--- | :--- | :--- |
+| **Privacy** | Enterprise compliance (HIPAA/SOC2 available). Data does not train models. | Standard policies. |
+| **Latency** | Excellent global coverage. | Variable depending on traffic. |
+| **Reliability** | SLAs available. | Best effort. |

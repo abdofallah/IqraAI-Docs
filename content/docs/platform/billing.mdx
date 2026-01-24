@@ -1,0 +1,93 @@
+---
+title: Billing & Usage
+description: Managing credits, subscriptions, auto-refill, and usage history.
+---
+
+import { CreditCard, RefreshCw, History, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI operates on a **Hybrid Pricing Model**. This combines the stability of a monthly subscription with the flexibility of a pre-paid credit balance.
+
+## The Credit System
+
+Your account functions like a digital wallet. You have a **Credit Balance** displayed in the Billing Overview.
+
+*   **Top-ups:** You add funds to your balance via credit card.
+*   **Deductions:** Real-time costs (like phone calls or LLM token generation) are deducted from this balance as they happen.
+
+<Callout type="error" title="Zero Balance">
+  If your credit balance drops to zero (or below the threshold), **active calls may be terminated** and new calls will fail. We highly recommend configuring [Auto-Refill](#auto-refill) to prevent this.
+</Callout>
+
+## Feature Types
+
+In the **Billing Overview**, you will see your features split into two categories. Understanding the difference is key to estimating costs.
+
+### 1. Usage-Based Features (Consumables)
+These are features that you "consume" by the minute or unit. Your Subscription Plan usually includes a specific quota of these. Once the included quota is exhausted, overage costs are deducted from your Credit Balance.
+
+| Feature | Description | Example Unit |
+| :--- | :--- | :--- |
+| **Call Minutes** | Duration of calls (Inbound/Outbound). | Per Minute |
+| **Concurrency** | How many calls can happen simultaneously. | Max Slots |
+| **Storage** | Size of uploaded Knowledge Base documents. | MB/GB |
+
+### 2. Recurring Features (Rentals)
+These are fixed monthly costs for resources you "hold". These are charged automatically every month.
+
+| Feature | Description | Billing Behavior |
+| :--- | :--- | :--- |
+| **Phone Numbers** | Rented numbers (e.g., Twilio/Telnyx). | Monthly deduction per number. |
+| **Whitelabeling** | The license to rebrand the platform. | Fixed monthly fee. |
+| **Seats/Users** | Additional team members. | Fixed monthly fee per user. |
+
+---
+
+## Auto-Refill
+**Preventing Service Interruption**
+
+To ensure your agents never go offline due to insufficient funds, you can configure Auto-Refill. This triggers a payment automatically when your balance gets low.
+
+<Steps>
+<Step>
+### Locate Configuration
+In the **Billing Tab**, scroll to the **Auto-Refill** card.
+</Step>
+
+<Step>
+### Set Thresholds
+You need to define two values:
+1.  **If Balance Falls Below:** The safety trigger (e.g., $20).
+2.  **Top Up Amount:** The amount to charge your card (e.g., $100).
+</Step>
+
+<Step>
+### Select Payment Method
+Choose which saved card to charge for these automatic transactions.
+</Step>
+</Steps>
+
+---
+
+## Usage Analysis
+
+While the Billing tab handles money, the **Usage Tab** handles data. It provides granular transparency into where your money is going.
+
+### Usage Overview
+A high-level dashboard showing cost trends over time.
+*   **Filter:** View by Date Range (Last 7 days, Month, Year).
+*   **Group By:** Segment data by Day, Month, or Business to see which Workspace is costing the most.
+
+### Usage History
+The detailed ledger. Every single event that costs money is logged here.
+*   **Line Items:** Each call segment, each recurring charge deduction.
+*   **Detail:** Shows exactly how many minutes/units were consumed and the specific cost applied.
+
+This is the source of truth for auditing your expenses.
+
+## Payment Methods
+
+You can manage your credit cards in the **Payment Methods** section of the Billing tab.
+
+*   **Adding a Card:** A small temporary charge may be made to verify the card authenticity. This is refunded immediately.
+*   **Default Card:** One card must be selected as the default for Auto-refill and Subscription renewals.

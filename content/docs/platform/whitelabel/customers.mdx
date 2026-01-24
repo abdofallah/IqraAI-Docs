@@ -1,0 +1,75 @@
+---
+title: Customer Management
+description: Onboarding and managing your clients within the whitelabel platform.
+---
+
+import { Users, ShieldCheck, CreditCard, Key } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+As an agency using Iqra AI's Whitelabeling, you can onboard and manage your own clients directly through the platform. Each **Customer** represents an end-user who will access their dedicated **Business Workspace**.
+
+## Customer Hierarchy
+
+Within the whitelabeling system, a customer is a distinct entity that:
+*   Logs in through your custom domain (e.g., `agent.yourcompany.com`).
+*   Accesses only the specific Business Workspaces assigned to them.
+*   Has their own billing and usage metrics managed by you.
+
+<Callout type="info" title="Customer Isolation">
+  Customers are isolated from each other and from your agency's master account. They only see what you grant them access to.
+</Callout>
+
+## Customer Management Table
+
+On the **Customers Tab** within Whitelabeling settings, you will find:
+*   **List of Customers:** Displays customer email, assigned businesses, and their current subscription status.
+*   **Quick Actions:** Buttons to Add New Customer, Edit Customer Details, or Delete a Customer account.
+
+## Onboarding a New Customer
+
+Follow these steps to grant a new client access to your whitelabeled Iqra AI platform.
+
+<Steps>
+<Step>
+### Add New Customer
+1.  Navigate to the **Whitelabel Tab** in your User Dashboard.
+2.  Go to the **Customers Tab**.
+3.  Click the **"Add Customer"** button.
+</Step>
+
+<Step>
+### Enter Customer Details
+1.  **Email:** The primary contact and login identifier for the customer.
+2.  **Password:** Set an initial password. The customer will be prompted to change this upon first login.
+3.  **Permissions:** (Future use) Define granular permissions if needed. For now, all customers have full access to their assigned businesses.
+</Step>
+
+<Step>
+### Assign Businesses
+Select which of your created **Business Workspaces** this customer should have access to. A customer can be assigned multiple businesses.
+</Step>
+
+<Step>
+### Configure Billing
+1.  **Assign Plan:** Select a subscription plan you previously created (e.g., "Small Business Plan").
+2.  **Credit Balance:** Set an initial credit balance for the customer.
+3.  **Addons:** Assign any additional purchased services (e.g., extra call minutes).
+4.  **Auto-Refill:** Configure auto-refill settings for this customer's account.
+</Step>
+
+<Step>
+### Save Customer
+Click **"Create Customer"**. An invitation email will be sent to the customer, prompting them to set up their account and access your whitelabeled platform.
+</Step>
+</Steps>
+
+## Managing Customer Billing
+
+As the agency owner, you manage your customer's financial relationship with Iqra AI.
+
+*   **Subscription Status:** View if their monthly plan is active, pending, or expired.
+*   **Balance Adjustments:** Manually add or remove credits from a customer's account.
+*   **Plan Changes:** Upgrade or downgrade a customer's plan.
+*   **Add-ons:** Manage any additional services they have purchased.
+
+You can access these controls by clicking "Edit Customer" and navigating to their dedicated Billing section.

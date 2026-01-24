@@ -1,0 +1,41 @@
+---
+title: Platform Overview
+description: Manage your account, billing, organizations, and whitelabel settings.
+---
+
+import { Building2, CreditCard, Key, Users, LayoutDashboard } from 'lucide-react';
+
+The **User Dashboard** is the command center for your Iqra AI account. Unlike the Business Dashboard (which focuses on building agents), this level handles **Administration**, **Finance**, and **Tenancy**.
+
+When you log in to [app.iqra.bot](https://app.iqra.bot), you land here.
+
+## Dashboard Modules
+
+<Cards>
+  <Card icon={<Building2 />} title="Businesses" href="/platform/organization">
+    Create and manage your **Workspaces**. Each business is an isolated container for your agents and data.
+  </Card>
+  
+  <Card icon={<CreditCard />} title="Billing & Usage" href="/platform/billing">
+    View real-time costs, manage payment methods, and configure **Auto-Refill** to keep your agents running.
+  </Card>
+  
+  <Card icon={<Key />} title="API Keys" href="/platform/api-keys">
+    Generate secure access tokens for the Iqra AI API. Scope them to specific businesses for better security.
+  </Card>
+  
+  <Card icon={<Users />} title="Whitelabeling" href="/platform/whitelabel">
+    **For Agencies:** Rebrand the platform with your own domain, logo, and pricing plans for your customers.
+  </Card>
+</Cards>
+
+## The Hierarchy
+
+It is important to remember that **no agents live here**. This dashboard manages the *containers* (Businesses) that hold the agents.
+
+*   **User Level (Here):** "I need to pay for credits" or "I need to add a new client workspace."
+*   **Business Level:** "I need to change the voice of my agent" or "I need to check call logs."
+
+<Callout type="info" title="Navigating">
+  To access the **Business Dashboard**, simply click on any card in the **Businesses** tab.
+</Callout>

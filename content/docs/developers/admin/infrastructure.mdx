@@ -1,0 +1,79 @@
+---
+title: Infrastructure Topology
+description: defining regions and registering server instances for load balancing.
+---
+
+import { Server, Globe, Key, AlertTriangle, Network } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI uses a **Service Discovery** model. Simply deploying a Docker container is not enough; you must register that container's address and credentials in the **Admin Dashboard** so the rest of the cluster knows it exists.
+
+## 1. Managing Regions
+
+A **Region** is a logical grouping of servers. It allows you to optimize latency by keeping call processing local to the user.
+
+1.  Navigate to **Admin Dashboard** -> **Infrastructure** -> **Regions**.
+2.  Click **Add Region**.
+    *   **Name:** Display name (e.g., "US East (N. Virginia)").
+    *   **Identifier:** System ID (e.g., `us-east-1`). This is used in API routing.
+
+<Callout type="info" title="Routing Logic">
+  When you add a Phone Number in the Business Dashboard, you assign it to one of these Regions. The Proxy then looks for **Backend Servers** registered to *that specific region* to handle the call.
+</Callout>
+
+## 2. Registering Servers
+
+Once a Region exists, you must populate it with servers.
+
+### The Handshake Mechanism
+For security, the Cluster uses a shared-secret handshake. You define a secret in your server's configuration, and you provide that same secret here.
+
+```json title="appsettings.json (Server Config)"
+{
+  "General": {
+    // [!code highlight]
+    "ApiSecretToken": "my-super-secure-secret-123"
+  }
+}
+```
+
+<Steps>
+<Step>
+### Add Proxy Server
+The Proxy handles inbound telephony webhooks.
+1.  Select the **Region**.
+2.  Click **Add Server** -> **Type: Proxy**.
+3.  **URL:** The internal or public HTTP address of the running `IqraProxyApp` container (e.g., `http://10.0.0.5:8080` or `https://proxy-us.mydomain.com`).
+4.  **API Secret:** Must match the `ApiSecretToken` in the Proxy's `appsettings.json`.
+</Step>
+
+<Step>
+### Add Backend Server
+The Backend processes audio and LLM logic. You can add **multiple** backends to a single region to scale horizontally.
+1.  Select the **Region**.
+2.  Click **Add Server** -> **Type: Backend**.
+3.  **URL:** The address of the `IqraBackendApp` container.
+4.  **API Secret:** Must match the `ApiSecretToken` in the Backend's `appsettings.json`.
+5.  **Capacity:** (Optional) Define max concurrent calls this node can handle (overrides dynamic load balancing if set).
+</Step>
+
+<Step>
+### Add Storage Server (Optional)
+If you are using **RustFS** (the built-in file server) instead of AWS S3, you must register it.
+1.  Select **Type: Storage**.
+2.  **URL:** The address of the RustFS container.
+3.  **API Secret:** The access key defined in RustFS config.
+</Step>
+</Steps>
+
+## Server Status & Maintenance
+
+The Admin Dashboard allows you to control traffic flow without killing containers.
+
+*   **Enabled/Disabled Toggle:** You can disable a specific Backend server.
+    *   *Effect:* The Proxy will stop routing *new* calls to this server. Existing calls continue until finished.
+    *   *Use Case:* Draining a node before upgrading the Docker image.
+
+<Callout type="error" title="Connectivity Check">
+  The dashboard does not currently ping servers automatically to verify uptime. If you register a server with the wrong URL or API Key, calls routed to it will fail with `500 Internal Server Error`. Double-check your settings!
+</Callout>

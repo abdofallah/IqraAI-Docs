@@ -1,0 +1,76 @@
+---
+title: Telnyx
+description: Configuring Telnyx Call Control and numbers for low-latency voice.
+---
+
+import { Phone, Key, Server, Network } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Telnyx is a high-performance carrier often chosen for its cost-effectiveness and private global network. Iqra AI connects to Telnyx via **Call Control**.
+
+## Prerequisites
+
+*   A [Telnyx Portal](https://portal.telnyx.com/) account.
+*   A purchased **Phone Number** in your Telnyx account.
+*   A **V2 API Key**.
+
+## Getting Credentials
+
+<Steps>
+<Step>
+### Generate API Key
+1.  Log in to the **Telnyx Mission Control Portal**.
+2.  Navigate to **Account Settings** -> **Keys & Credentials**.
+3.  Click **Create API Key**.
+4.  Copy the key immediately (it will not be shown again).
+</Step>
+
+<Step>
+### Connect to Iqra AI
+1.  Navigate to **Business Dashboard** -> **Integrations**.
+2.  Click **Add Integration** -> **Telnyx**.
+3.  Paste your **API Key**.
+4.  Give it a name (e.g., "Telnyx Production").
+</Step>
+</Steps>
+
+## Webhook Configuration (Call Control)
+
+Unlike Twilio (where you configure the number directly), Telnyx requires you to create an **Application** and assign numbers to it.
+
+<Steps>
+<Step>
+### Get Iqra AI Webhook
+1.  In the Iqra AI Dashboard, go to **Numbers**.
+2.  Add your Telnyx number.
+3.  Copy the **Webhook URL** provided next to the number (e.g., `https://us-east.iqra.bot/webhooks/telnyx`).
+</Step>
+
+<Step>
+### Create Telnyx Application
+1.  In Telnyx Portal, go to **Call Control** -> **Applications**.
+2.  Click **Add New Application**.
+3.  **Name:** "Iqra AI Agent".
+4.  **Webhook URL:** Paste the URL you copied from Iqra AI.
+5.  **API Version:** Select `v2`.
+6.  **Anchors:** (Optional) Select the region closest to your Iqra AI Route Server (e.g., Ashburn, VA for US East).
+7.  Click **Save**.
+</Step>
+
+<Step>
+### Assign Number to App
+1.  Go to **Numbers** -> **My Numbers**.
+2.  Edit the number you wish to use.
+3.  Under **Connection/Application**, select the "Iqra AI Agent" app you just created.
+4.  Click **Save**.
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<Callout type="warn" title="Emergency Address (e911)">
+  Telnyx (and regulations) often require you to associate an Emergency Address with your phone number before it becomes fully active for outbound calling. Check the "My Numbers" tab in Telnyx for any warnings.
+</Callout>
+
+*   **Call Fails Immediately:** Check if the **Connection/Application** is correctly assigned to the number.
+*   **Latency:** Ensure your Telnyx Application "Anchor" region matches your Iqra AI "Route Server" region.

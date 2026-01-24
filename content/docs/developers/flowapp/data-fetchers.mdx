@@ -1,0 +1,172 @@
+---
+title: Data Fetchers
+description: Building dynamic dropdowns to populate form fields from an API.
+---
+
+import { Database, ListFilter, ArrowDownUp, Link } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+A **Data Fetcher** is a piece of logic that retrieves a list of options from an external API and presents them as a dropdown in the Script Builder UI.
+
+*   **Static:** "Select Country" (Hardcoded Enum in JSON).
+*   **Dynamic:** "Select HubSpot User" (Requires API call).
+
+## 1. Schema Binding (`x-fetcher`)
+
+To tell the frontend to use a fetcher, you add a custom property to your [Action Schema](/developers/flowapp/create-action).
+
+```json title="BookMeeting.json"
+{
+  "properties": {
+    "ownerId": {
+      "type": "string",
+      "title": "Contact Owner",
+      // [!code highlight]
+      "x-fetcher": "GetHubSpotUsers"
+    }
+  }
+}
+```
+
+The string `"GetHubSpotUsers"` matches the **Fetcher Key** defined in your C# code.
+
+---
+
+## 2. Implementing the Fetcher (C#)
+
+Create a class that implements `IFlowDataFetcher`.
+
+```csharp
+using IqraCore.Interfaces.FlowApp;
+using IqraCore.Entities.FlowApp;
+
+public class GetHubSpotUsersFetcher : IFlowDataFetcher
+{
+    private readonly HubSpotApp _app;
+
+    public GetHubSpotUsersFetcher(HubSpotApp app)
+    {
+        _app = app;
+    }
+
+    // Must match the 'x-fetcher' value in JSON
+    public string FetcherKey => "GetHubSpotUsers";
+
+    public async Task<List<DynamicOption>> FetchOptionsAsync(
+        BusinessAppIntegration? integration, 
+        JsonElement context)
+    {
+        if (integration == null) return new();
+
+        try 
+        {
+            var apiKey = integration.DecryptedFields["ApiKey"];
+            var client = _app.CreateClient(apiKey);
+
+            // Call external API
+            var response = await client.GetFromJsonAsync<HubSpotUserResponse>("/crm/v3/owners");
+
+            // Map to Dynamic Options
+            return response.Results.Select(user => new DynamicOption
+            {
+                Label = $"{user.FirstName} {user.LastName}",
+                Value = user.Id, // The value sent to the Action logic
+                Description = user.Email
+            }).ToList();
+        }
+        catch 
+        {
+            return new(); // Return empty list on failure (don't crash UI)
+        }
+    }
+}
+```
+
+### The `DynamicOption` Object
+
+| Property | Description |
+| :--- | :--- |
+| **Label** | What the user sees (e.g., "John Doe"). |
+| **Value** | What the system stores (e.g., "user_123"). |
+| **Description** | (Optional) Subtext (e.g., "john@example.com"). |
+| **IconUrl** | (Optional) Image next to the item. |
+
+---
+
+## 3. Dependent Fetchers (Context Aware)
+
+Sometimes, a dropdown depends on the value of another field.
+*   *Example:* Select **Team** $\to$ Select **Event Type** (filtered by Team).
+
+### Schema Definition
+Use `x-fetcher-dependent-on` to tell the frontend to re-fetch when specific fields change.
+
+```json
+{
+  "teamId": {
+    "type": "string", 
+    "x-fetcher": "GetTeams" 
+  },
+  "eventTypeId": {
+    "type": "string",
+    "x-fetcher": "GetTeamEvents",
+    // [!code highlight]
+    "x-fetcher-dependent-on": ["teamId"]
+  }
+}
+```
+
+### Implementation Logic
+The `context` parameter contains the current state of the form.
+
+```csharp
+public async Task<List<DynamicOption>> FetchOptionsAsync(
+    BusinessAppIntegration? integration, 
+    JsonElement context)
+{
+    // 1. Check if dependency exists
+    string? teamId = null;
+    if (context.ValueKind == JsonValueKind.Object && 
+        context.TryGetProperty("teamId", out var prop))
+    {
+        teamId = prop.GetString();
+    }
+
+    if (string.IsNullOrEmpty(teamId))
+    {
+        return new List<DynamicOption> { 
+            new DynamicOption { Label = "Please select a team first", Value = "" } 
+        };
+    }
+
+    // 2. Fetch data using the dependency
+    var events = await _api.GetEventsForTeam(teamId);
+    
+    // ... map to options
+}
+```
+
+---
+
+## 4. Registration
+
+Finally, register the fetcher in your App class.
+
+```csharp title="HubSpotApp.cs"
+public class HubSpotApp : IFlowApp
+{
+    // ...
+    public IReadOnlyList<IFlowDataFetcher> DataFetchers { get; }
+
+    public HubSpotApp(...)
+    {
+        // ... actions
+        
+        DataFetchers = new List<IFlowDataFetcher>
+        {
+            new GetHubSpotUsersFetcher(this),
+            new GetTeamsFetcher(this)
+        };
+    }
+}
+```

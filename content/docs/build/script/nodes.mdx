@@ -1,0 +1,104 @@
+---
+title: Node Reference
+description: A complete dictionary of the building blocks available in the Script Builder.
+---
+
+import { MessageSquare, Phone, Globe, Lock, Hammer, Book, ArrowRightCircle, Smartphone } from 'lucide-react';
+
+The Graph Editor provides a suite of nodes to handle conversation flow, telephony signals, and backend logic. Right-click on the canvas to access the node menu.
+
+## Conversation Nodes
+
+The core interaction loop between the human and the AI.
+
+### User Query
+Defines an **Intent** or specific phrase the user might say.
+*   **Usage:** Connect this after a Start Node or AI Response.
+*   **Matching:** The LLM uses semantic matching. If you type "I want to buy," it will also match "I'm looking to purchase."
+*   **Multi-Language:** You must define the query text for every enabled language to ensure accurate intent detection across regions.
+
+### AI Response
+Defines what the Agent speaks.
+*   **Usage:** Connect this after a User Query or a Tool execution.
+*   **Content:** The text to be synthesized by TTS. Supports [Templating](/build/script/templating) (e.g., `Hello {{ name }}`).
+*   **Multi-Language:** Requires translated text for each language.
+
+---
+
+## Telephony Tools (DTMF)
+
+Interact with the phone keypad.
+
+### Get DTMF Input
+Waits for the user to press keys on their dialpad.
+*   **Timeout:** How long to wait (in seconds) for input.
+*   **Max Length:** The expected number of digits (e.g., 4 for a PIN).
+*   **Terminators:** Require `*` or `#` to signal end of input.
+*   **Encryption:** If enabled, the actual digits are **redacted** from logs and the agent's context. The agent only receives the *length* of the input. Useful for collecting credit card numbers securely.
+
+### Press DTMF
+Simulates the agent pressing keys (e.g., dialing an extension).
+*   **Sequence:** The string of digits to press (e.g., `123#`).
+
+---
+
+## System Tools
+
+Internal platform actions.
+
+### End Call
+Terminates the connection.
+*   **Mode:**
+    *   *Speak & End:* Plays a final message before hanging up.
+    *   *Immediate:* Cuts the line instantly.
+
+### Change Language
+Switches the entire agent configuration mid-call.
+*   **Target Language:** Select from your enabled business languages.
+*   **Effect:** Swaps the STT/TTS providers and the prompt context to the selected language immediately.
+
+### Send SMS
+Triggers a text message.
+*   **Recipient:** Defaults to the current caller, or can be a specific number.
+*   **Content:** The message body (supports templates).
+*   **Provider:** Uses the SMS integration configured in your Business.
+
+---
+
+## Logic & Flow
+
+Tools to manage the graph structure.
+
+### Go To Node
+Jumps execution to another node in the graph without drawing a physical line.
+*   **Target:** Select a specific node ID from the list.
+*   **Use Case:** Cleaning up "spaghetti" wires or creating loops (e.g., returning to the Main Menu).
+
+### Add Script to Context
+Injects the logic of *another* script into the current conversation.
+*   **Use Case:** You have a master "FAQ Script." You can inject it into your "Sales Script" so the sales agent can also answer FAQs without you rebuilding those nodes.
+
+---
+
+## Data & External
+
+### Retrieve Knowledge Base
+Forces a manual RAG lookup.
+*   **Query:** The search term. Can be static or a dynamic variable from a previous user query.
+*   **Result:** The retrieved context is injected into the prompt for the next AI Response.
+
+### Custom Tool
+Executes an HTTP webhook defined in the **Tools** module.
+*   **Selection:** Pick from your pre-defined tools (e.g., "Book Cal.com Meeting").
+*   **Inputs:** If the tool requires arguments (like `email` or `date`), the LLM will attempt to extract them from the conversation history automatically.
+
+---
+
+## Coming Soon
+
+<Callout type="info" title="Roadmap">
+  We are actively developing the following nodes:
+  *   **Transfer to Agent:** Hand off the call to another AI persona.
+  *   **Transfer to Human:** SIP/PSTN forwarding to a live agent.
+  *   **App Tools:** Native integrations for Google Sheets, HubSpot, and Slack (no custom HTTP setup required).
+</Callout>

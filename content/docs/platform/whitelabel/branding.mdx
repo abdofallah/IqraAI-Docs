@@ -1,0 +1,72 @@
+---
+title: Branding
+description: Customize the visual identity, logos, and styles of the client portal.
+---
+
+import { Palette, Image, Code, Layers } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **Branding** module allows you to erase the "Iqra AI" identity and replace it with your own. You can control the platform name, logos, and even the fundamental color scheme via CSS.
+
+## Branding Levels
+
+Iqra AI uses a cascading branding system.
+
+1.  **Platform Settings (Global):** These are the default settings applied to *all* your custom domains.
+2.  **Domain Overrides (Specific):** You can set specific branding for a specific domain (e.g., `agent.client-a.com`), which overrides the global settings.
+
+<Callout type="info" title="Strategy">
+  If you are a single agency, just use **Platform Settings**. If you manage multiple distinct brands, use **Domain Overrides**.
+</Callout>
+
+## Basic Configuration
+
+Navigate to **Whitelabel** -> **Platform Settings** (or Edit a specific Domain).
+
+### Platform Name
+The text that appears in the browser tab title and email notifications (e.g., "Medina AI Agent").
+
+### Visual Assets
+Upload your assets to replace the default imagery.
+
+| Asset | Recommended Format | Usage |
+| :--- | :--- | :--- |
+| **Platform Logo** | SVG or PNG (Transparent) | Displayed on the login screen and top navigation bar. |
+| **Platform Icon** | PNG or ICO (Square) | The **Favicon** displayed in the browser tab. |
+
+## Custom CSS (Advanced)
+
+For deep customization, Iqra AI allows you to inject raw CSS into the client portal. This gives you control over colors, fonts, border radius, and component visibility.
+
+### How to use
+In the **Custom CSS** field, you can paste standard CSS code. This is loaded after the platform's default styles, allowing you to override them.
+
+```css title="Example: Changing the Primary Color"
+/* Change the primary brand color to Purple */
+:root {
+  --primary: 120 100% 50%; /* HSL Format usually */
+  --ring: 120 100% 50%;
+}
+
+/* Make buttons rounded */
+.button {
+  border-radius: 9999px;
+}
+
+/* Hide specific elements if needed */
+.footer-links {
+  display: none;
+}
+```
+
+<Callout type="warn" title="Use with Caution">
+  Injecting incorrect CSS can break the layout of the dashboard for your customers. We recommend testing your CSS changes on a test account/domain before rolling them out to production.
+</Callout>
+
+## Testing Your Brand
+
+To see your changes in action:
+1.  Ensure you have a **Domain** configured and Active.
+2.  Open an Incognito/Private window.
+3.  Visit your custom domain (e.g., `https://agent.yourcompany.com`).
+4.  You should see your Logo on the login screen and your Favicon in the tab.

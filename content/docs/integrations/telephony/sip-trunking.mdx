@@ -1,0 +1,85 @@
+---
+title: SIP Trunking
+description: Connect generic VoIP providers (ModemTel, Vonage, Bandwidth) via SIP.
+---
+
+import { Globe, Shield, Settings, Server, ArrowRightLeft } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**SIP Trunking** is the universal language of VoIP. It allows you to connect any carrier that supports SIP—such as **ModemTel**, **Vonage**, **Bandwidth**, or legacy PBX systems—to Iqra AI, even if we do not have a specific API integration for them.
+
+This is an **Advanced Feature** requiring knowledge of networking and SIP headers.
+
+## Configuration Overview
+
+To establish a connection, you need to configure two directions:
+1.  **Inbound (Termination):** Sending calls *from* your carrier *to* Iqra AI.
+2.  **Outbound (Origination):** Sending calls *from* Iqra AI *through* your carrier.
+
+## 1. Inbound Configuration
+**Getting calls into Iqra AI.**
+
+You need to tell your carrier where to route incoming calls. Iqra AI uses a **SIP URI** format.
+
+### The URI Format
+Construct your URI using the region closest to your carrier:
+
+```text
+sip:{E.164_NUMBER}@{REGION}.sip.iqra.bot
+```
+
+*   `{E.164_NUMBER}`: The phone number (DID) including the country code (e.g., `+1234567890`).
+*   `{REGION}`: The server region ID (e.g., `us-east`, `eu-central`).
+
+**Example:**
+`sip:+96812345678@me-south.sip.iqra.bot`
+
+### Carrier Setup
+1.  Log in to your Carrier's portal (e.g., ModemTel).
+2.  Navigate to your DID/Number management.
+3.  Set the **Routing / Forwarding** method to **SIP URI**.
+4.  Paste the constructed URI.
+
+---
+
+## 2. Outbound Configuration
+**Allowing Iqra AI to dial out.**
+
+Navigate to **Business Dashboard** -> **Integrations** -> **Add Integration** -> **SIP Trunk**.
+
+You must provide the credentials required by your carrier to accept calls from us.
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| **SIP Proxy / Gateway** | The carrier's server address. | `sip.modemtel.com` |
+| **Username** | SIP Auth Username. | `user_123` |
+| **Password** | SIP Auth Password. | `secret_pass` |
+| **Port** | Usually 5060 (UDP/TCP) or 5061 (TLS). | `5060` |
+| **Tech Prefix** | (Optional) Prefix required by some carriers. | `999#` |
+
+### Caller ID Headers
+When we send an outbound call, we pass the Caller ID information in the SIP Headers. Ensure your carrier supports:
+*   **From:** The E.164 number.
+*   **P-Asserted-Identity (PAI):** The verified E.164 number (Standard for trust).
+
+---
+
+## 3. Network & Security
+**Firewall Rules (IP Whitelisting)**
+
+Most SIP carriers (like Twilio or Telnyx) require you to **Whitelist** the IP addresses that will be sending them traffic. If you do not whitelist these IPs, your outbound calls will fail with `403 Forbidden` or `503 Service Unavailable`.
+
+Please allow traffic **to and from** the following subnets:
+
+### Signaling (SIP - Port 5060)
+*   `x.x.x.x/32` (US East)
+*   `x.x.x.x/32` (EU Central)
+*   *(Note: Check your specific Region settings in the dashboard for the exact IPs)*
+
+### Media (RTP - Ports 10000-20000)
+Audio packets may come from our media fleet.
+*   `x.x.x.x/24` (Global Media Range)
+
+<Callout type="warn" title="Codec Support">
+  Iqra AI supports **PCMU (G.711u)** and **PCMA (G.711a)**. Ensure your carrier supports these standard codecs. We generally do not support G.729 due to licensing and quality issues for AI transcription.
+</Callout>

@@ -1,0 +1,64 @@
+---
+title: Twilio
+description: Connecting your Twilio account for voice calls and SMS.
+---
+
+import { Phone, Key, Settings, Wifi } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Twilio is a leading cloud communications platform. Iqra AI integrates seamlessly with Twilio to provision phone numbers and manage call routing.
+
+## Prerequisites
+
+Before connecting, ensure you have:
+*   A Twilio Account.
+*   A **Twilio Phone Number** purchased and active in your Twilio console.
+*   Your **Twilio Account SID** and **Auth Token**.
+
+## Getting Credentials
+
+1.  **Log in** to your [Twilio Console](https://www.twilio.com/console).
+2.  **Account SID & Auth Token:** These are prominently displayed on the main **Dashboard** page. Copy both values.
+3.  **Phone Numbers:** Navigate to **Phone Numbers** $\to$ **Manage** $\to$ **Active Numbers**. Find the number you want to use with Iqra AI.
+
+## Connecting to Iqra AI
+
+1.  Navigate to **Business Dashboard** $\to$ **Integrations**.
+2.  Click **Add Integration** $\to$ **Twilio**.
+3.  **Name:** Give your integration a recognizable name (e.g., "My Twilio Account").
+4.  **Account SID:** Paste your Twilio Account SID.
+5.  **Auth Token:** Paste your Twilio Auth Token.
+6.  **Default Number:** Select the primary Twilio number that will be used for this business. (This can be overridden in campaign routing).
+7.  Click **Save Integration**.
+
+---
+
+## Webhook Configuration
+
+This is the most crucial step for Twilio to work with Iqra AI. It tells Twilio where to send call events.
+
+### Automatic Configuration
+When you save your Twilio integration, Iqra AI attempts to automatically configure the **Voice Request URL** for your Twilio number. It also attempts to set up the **Status Callback URL**.
+
+*   **If Successful:** You should see a green checkmark next to your number in the Iqra AI "Numbers" tab.
+*   **If Failed:** You may see a warning, indicating manual setup is required.
+
+### Manual Configuration (If Auto-Fails)
+If the automatic setup doesn't work, or if you prefer manual control:
+
+1.  **Find the Iqra AI Webhook URL:**
+    *   Go to **Business Dashboard** $\to$ **Numbers**.
+    *   Find your Twilio number in the list.
+    *   Copy the **Voice Request URL** provided. It will look like: `https://<region-server>.iqra.bot/webhooks/twilio` (e.g., `https://eu-1.sip.iqra.bot/webhooks/twilio`).
+2.  **Configure Twilio:**
+    *   In your Twilio Console, navigate to **Phone Numbers** $\to$ **Manage** $\to$ **Active Numbers**.
+    *   Click on your specific phone number.
+    *   Scroll down to the **Voice & Fax** section.
+    *   For **"A CALL COMES IN"**, select **Webhook** and paste the Iqra AI Voice Request URL you copied.
+    *   Ensure the HTTP Method is set to **HTTP POST**.
+    *   **Status Callback URL:** It's good practice to also set the **"Status Callback URL"** to the same Iqra AI webhook URL.
+    *   Click **Save**.
+
+<Callout type="warn" title="Geo-Permissions">
+  Ensure your Twilio account allows outbound calls to the countries you intend to dial. Check your Twilio Console under **Super Properties** $\to$ **Geo Permissions**.
+</Callout>

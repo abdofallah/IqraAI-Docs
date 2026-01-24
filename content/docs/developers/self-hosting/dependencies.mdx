@@ -1,0 +1,171 @@
+---
+title: Database & Infrastructure
+description: Spinning up the data layer (Mongo, Redis, Milvus, RustFS) using Docker.
+---
+
+import { Database, Container, HardDrive, AlertTriangle, FileJson } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Before you run the Iqra AI applications, you must have the **Data Layer** running. This layer holds all state, vector embeddings, and binary files.
+
+We recommend running these dependencies via **Docker Compose** for ease of management and version compatibility.
+
+## The Stack
+
+| Service | Port | Usage |
+| :--- | :--- | :--- |
+| **MongoDB** | `27017` | Persistent storage for users, businesses, and logs. |
+| **Redis** | `6379` | Real-time concurrency tracking, audio buffering, and queues. |
+| **Milvus** | `19530` | Vector database for RAG Knowledge Base. |
+| **RustFS** | `9000` | S3-compatible object storage for recordings and assets. |
+
+## Setup Guide
+
+<Steps>
+<Step>
+### Install Docker
+Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine (Linux) installed.
+</Step>
+
+<Step>
+### Create Compose File
+Create a new file named `docker-compose.yml` in your deployment directory and paste the following configuration.
+
+```yaml title="docker-compose.yml"
+version: '3.5'
+
+services:
+  # -----------------------------
+  # 1. Primary Database (MongoDB)
+  # -----------------------------
+  mongodb:
+    image: mongo:6.0
+    container_name: iqra-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - iqra-net
+
+  # -----------------------------
+  # 2. Hot Storage (Redis)
+  # -----------------------------
+  redis:
+    image: redis:7.0
+    container_name: iqra-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - iqra-net
+
+  # -----------------------------
+  # 3. Object Storage (RustFS)
+  # -----------------------------
+  rustfs:
+    image: s3-server:latest # Replace with the official RustFS image tag provided in repo
+    container_name: iqra-storage
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      - RUST_LOG=info
+      - ACCESS_KEY=admin
+      - SECRET_KEY=password123
+      - PORT=9000
+    volumes:
+      - ./data/rustfs:/data
+    networks:
+      - iqra-net
+
+  # -----------------------------
+  # 4. Vector DB (Milvus)
+  # -----------------------------
+  etcd:
+    container_name: milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - ./data/etcd:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls=http://0.0.0.0:2379 --data-dir /etcd
+    networks:
+      - iqra-net
+
+  milvus-standalone:
+    container_name: milvus-standalone
+    image: milvusdb/milvus:v2.3.4
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      # Milvus requires its own S3 for internal data
+      # We point it to RustFS to keep the stack consolidated
+      MINIO_ADDRESS: rustfs:9000
+      MINIO_ACCESS_KEY_ID: admin
+      MINIO_SECRET_ACCESS_KEY: password123
+      MINIO_BUCKET_NAME: milvus-bucket
+    volumes:
+      - ./data/milvus:/var/lib/milvus
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - "etcd"
+      - "rustfs"
+    networks:
+      - iqra-net
+
+networks:
+  iqra-net:
+    driver: bridge
+```
+</Step>
+
+<Step>
+### Start Infrastructure
+Run the following command in your terminal:
+
+```bash
+docker-compose up -d
+```
+
+Docker will download the images and spin up the containers in detached mode.
+</Step>
+
+<Step>
+### Verify Connection
+Ensure all containers are running:
+
+```bash
+docker ps
+```
+
+You should see 5 containers listed with status `Up`.
+</Step>
+</Steps>
+
+## Connection Strings
+
+Based on the configuration above, here are the connection strings you will need for the next step ([Configuration](/developers/self-hosting/configuration)).
+
+| Service | Connection String / Config |
+| :--- | :--- |
+| **MongoDB** | `mongodb://admin:password123@localhost:27017` |
+| **Redis** | `localhost:6379,password=...` (if password set) |
+| **Milvus** | Host: `localhost`, Port: `19530` |
+| **Storage** | Endpoint: `http://localhost:9000`, Key: `admin`, Secret: `password123` |
+
+<Callout type="warn" title="Production Security">
+  The passwords above (`password123`) are for demonstration purposes only. Please change them in the `docker-compose.yml` file before deploying to a public server.
+</Callout>

@@ -1,0 +1,57 @@
+---
+title: Future Clients
+description: Roadmap for Python, Node.js, Go, and Mobile SDKs.
+---
+
+import { Terminal, Smartphone, Code2, Globe } from 'lucide-react';
+
+We are actively expanding the Iqra AI ecosystem. While our core infrastructure is built on .NET and our web widget is pure JavaScript, we understand that developers work in many environments.
+
+## Server-Side Libraries (Roadmap)
+
+We plan to release official middleware and API wrapper libraries for the following languages:
+
+<Cards>
+  <Card icon={<Terminal />} title="Python">
+    **FastAPI / Flask / Django.**
+    *   Planned: Native middleware for handling webhooks and rate-limiting.
+  </Card>
+  <Card icon={<Terminal />} title="Node.js">
+    **Express / NestJS.**
+    *   Planned: TypeScript-first SDK for backend integration.
+  </Card>
+  <Card icon={<Terminal />} title="Go & Rust">
+    **High Performance.**
+    *   Planned: Lightweight clients for microservices architecture.
+  </Card>
+</Cards>
+
+## Mobile SDKs
+
+Bringing Voice AI to native applications.
+
+<Cards>
+  <Card icon={<Smartphone />} title="Cross-Platform">
+    **React Native & Flutter.**
+    *   Components to easily embed the "Talk" button into hybrid apps.
+  </Card>
+  <Card icon={<Code2 />} title="Native">
+    **Swift (iOS) & Kotlin (Android).**
+    *   Deep integration with native audio subsystems for background processing.
+  </Card>
+</Cards>
+
+## Generating Your Own Client
+
+You do not have to wait for us!
+
+Iqra AI follows the **OpenAPI 3.0** standard. You can generate a client library for *any* language instantly using our [API Reference](/developers/api) and tools like `openapi-generator`.
+
+```bash
+# Example: Generating a Python client
+openapi-generator-cli generate -i https://app.iqra.bot/api/v1/swagger.json -g python -o ./iqra-python-client
+```
+
+<Callout type="info" title="Contribute">
+  Are you building a wrapper for your favorite language? We would love to feature it here! Please check our [Contribution Guidelines](/developers/self-hosting/contributing).
+</Callout>

@@ -1,0 +1,11 @@
+{
+    "title": "Introduction",
+    "icon": "BookOpen",
+    "root": true,
+    "pages": [
+        "index",
+        "architecture",
+        "concepts",
+        "quick-start"
+    ]
+}

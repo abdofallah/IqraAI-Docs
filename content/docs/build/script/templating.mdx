@@ -1,0 +1,112 @@
+---
+title: Templating & Variables
+description: Using the Scriban engine to inject dynamic data, logic, and formatting into your agents.
+---
+
+import { Braces, Code, Database, Calendar } from 'lucide-react';
+
+Static scripts are limited. To build truly personalized experiences, Iqra AI integrates the **Scriban** templating engine. This allows you to inject variables, perform math, format dates, and execute logic directly within your nodes.
+
+You can use templating anywhere you see the **Variable Icon** <Braces className="w-4 h-4 inline-block" /> in the input label (e.g., AI Response text, Tool URLs, Greeting messages).
+
+## Basic Syntax
+
+To inject a variable, wrap it in double curly braces:
+
+```liquid
+Hello {{ name }}, how can I help you?
+```
+
+If the variable `name` is "Ahmed", the agent will say: *"Hello Ahmed, how can I help you?"*
+
+## Variable Sources
+
+Where does data come from? Here are the primary namespaces available during a call:
+
+| Namespace | Variable | Description |
+| :--- | :--- | :--- |
+| **Metadata** | `{{ metadata.key }}` | Custom data passed when you triggered the call (via API or CSV upload). |
+| **Call Info** | `{{ call.from }}` | The caller's phone number. |
+| **Call Info** | `{{ call.to }}` | The number the caller dialed. |
+| **Agent** | `{{ agent.name }}` | The internal name of the agent. |
+| **Tools** | `{{ tool_id.response }}` | Data returned from a [Custom Tool](/build/tools) execution. |
+
+### Example: Using Metadata
+When launching a **Bulk Call** from a CSV, you might have a column named `balance`.
+
+**CSV Row:**
+`phone,name,balance`
+`+123456789,John Doe,500`
+
+**Script Node (AI Response):**
+```liquid
+Hi {{ metadata.name }}, this is a reminder that you have an outstanding balance of {{ metadata.balance }} dollars.
+```
+
+## Logic & Control Flow
+
+Scriban allows you to add logic *inside* your text. This is powerful for handling variations without creating complex graph branches.
+
+### If / Else
+Change the message based on data.
+
+```liquid
+{{ if metadata.is_vip }}
+  Welcome back to the Premium Support line, {{ metadata.name }}.
+{{ else }}
+  Thanks for calling Customer Support.
+{{ end }}
+```
+
+### Loops
+Iterate over lists (e.g., a list of appointments returned by a tool).
+
+```liquid
+I found the following available slots:
+{{ for slot in tool_1.available_slots }}
+  - {{ slot.time }}
+{{ end }}
+```
+
+## Built-in Functions
+
+Iqra AI exposes helper functions to format data for better TTS pronunciation.
+
+### Date & Time
+Raw dates (ISO 8601) sound robotic when spoken. Use date functions to make them natural.
+
+```liquid
+// Raw: "2023-10-25T14:00:00"
+// Spoken: "Twenty twenty-three dash ten dash twenty-five..." (Bad)
+
+// Formatted:
+{{ appointment_date | date.to_string "%A, %B %d at %I:%M %p" }}
+// Spoken: "Wednesday, October 25 at 02:00 PM" (Good)
+```
+
+### String Manipulation
+
+```liquid
+// Capitalize
+{{ name | string.capitalize }}
+
+// Fallback (if variable is empty)
+{{ name | default "Valued Customer" }}
+```
+
+<Callout type="tip" title="Safety First">
+  Always use the `default` filter for optional variables. This prevents the agent from saying "Hello blank" or crashing if a variable is missing.
+</Callout>
+
+## Tool Chaining
+
+One of the most powerful features is using the output of one tool as the input for another, or speaking the result.
+
+1.  **Tool A (GetCustomer):** Returns JSON `{ "id": 101, "status": "active" }`.
+2.  **Tool B (UpdateStatus):** Requires an ID.
+3.  **Input Configuration for Tool B:**
+    ```liquid
+    {{ tool_get_customer.response.id }}
+    ```
+
+The system allows you to traverse complex JSON objects returned by APIs using standard dot notation.

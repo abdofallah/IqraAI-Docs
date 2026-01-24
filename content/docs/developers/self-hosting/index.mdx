@@ -1,0 +1,77 @@
+---
+title: Self-Hosting Overview
+description: Prerequisites and architectural considerations for deploying Iqra AI on your own infrastructure.
+---
+
+import { Server, HardDrive, Cpu, AlertTriangle, Boxes, Database, Play, Settings, Zap } from 'lucide-react';
+
+Self-hosting Iqra AI gives you absolute control over data privacy, latency, and infrastructure costs. However, unlike standard web applications, a Voice AI platform requires specific attention to **Audio Latency**, **UDP Networking**, and **Compute Performance**.
+
+## Deployment Strategy
+
+Iqra AI follows a **Hybrid Deployment Model**.
+
+| Component | Recommended Host | Reason |
+| :--- | :--- | :--- |
+| **Data Layer** (Mongo/Redis/Milvus) | **Docker** | Easy management, standard images. |
+| **Frontend / Proxy / Background** | **Docker** | Stateless web services, easy to containerize. |
+| **Backend App** | **Bare Metal / VM** | Requires direct access to **UDP Ports** (10000-20000) for RTP audio streams. Docker networking (NAT) can introduce jitter or packet loss if not configured perfectly (e.g., Host Networking). |
+
+<Callout type="warn" title="OS Compatibility">
+  The platform is built on **.NET**. It runs natively on **Windows** (Windows 10 recommended/tested) and **Linux** (Debian 12+ recommended/tested). macOS is supported for development but not recommended for production as it has not been tested.
+</Callout>
+
+## System Requirements
+
+### Hardware (Minimum)
+*   **CPU:** 4 Cores (High clock speed preferred over core count for audio processing).
+*   **RAM:** 8GB (Milvus and Redis are memory-intensive).
+*   **Disk:** 50GB SSD (NVMe recommended for Vector DB performance).
+
+### Network
+*   **Public IP:** Essential for receiving Webhooks from Telephony providers.
+*   **Ports:**
+    *   `80/443` (HTTP/HTTPS) - Dashboard & API.
+    *   `5060` (SIP) - If using SIP Trunking.
+    *   `10000-20000` (UDP) - **Critical.** RTP Audio Media range.
+
+## Software Dependencies
+
+Before running the application code, you need the "Data Layer" up and running.
+
+<Cards>
+  <Card icon={<Database />} title="MongoDB">
+    **v6.0+**. Primary storage for metadata and logs.
+  </Card>
+  <Card icon={<Zap />} title="Redis">
+    **v7.0+**. Hot cache, pub/sub, and concurrency counters.
+  </Card>
+  <Card icon={<Cpu />} title="Milvus">
+    **v2.3+**. Vector database for RAG Knowledge Base.
+  </Card>
+  <Card icon={<HardDrive />} title="S3 / RustFS">
+    Object storage for audio files. You can use our built-in **RustFS** container.
+  </Card>
+</Cards>
+
+## The Roadmap
+
+Deploying Iqra AI involves four distinct stages.
+
+<Cards>
+  <Card icon={<Boxes />} title="1. Infrastructure" href="/developers/self-hosting/dependencies">
+    Spinning up the databases using `docker-compose`.
+  </Card>
+  
+  <Card icon={<Settings />} title="2. Configuration" href="/developers/self-hosting/configuration">
+    Understanding the `appsettings.json` file and connection strings.
+  </Card>
+  
+  <Card icon={<Server />} title="3. Running Apps" href="/developers/self-hosting/deployment">
+    Deploying the Frontend, Proxy, and Backend services.
+  </Card>
+  
+  <Card icon={<Play />} title="4. Initialization" href="/developers/self-hosting/initialization">
+    First-time setup: Creating the Admin account and registering your servers.
+  </Card>
+</Cards>

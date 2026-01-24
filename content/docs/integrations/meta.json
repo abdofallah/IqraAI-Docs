@@ -1,0 +1,6 @@
+{
+    "title": "Integrations",
+    "icon": "Blocks",
+    "description": "Connect Providers (Azure, Twilio, etc.)",
+    "root": true
+}

@@ -1,0 +1,99 @@
+---
+title: System Initialization
+description: First-time setup, registering infrastructure, and seeding the service registry.
+---
+
+import { Play, Shield, Server, Plug, CheckCircle2 } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Congratulations! Your containers are running and your backend service is active. However, the platform is currently a "Blank Slate".
+
+You must now log in to the **Admin Dashboard** to tell the system about your infrastructure topology and available AI services.
+
+## 1. Accessing the Admin Panel
+
+Navigate to your frontend URL (e.g., `http://localhost` or `https://app.your-domain.com`).
+
+1.  Click **Login**.
+2.  Use the **Default Admin Credentials** defined in your `IqraFrontend/appsettings.json`.
+
+```json
+"Admin": {
+  "DefaultEmail": "admin@localhost.com",
+  "DefaultPassword": "AdminPassword123!"
+}
+```
+
+<Callout type="error" title="Security Risk">
+  **Change your password immediately** after the first login via the Profile settings.
+</Callout>
+
+---
+
+## 2. Registering Infrastructure
+
+The database needs to know where your servers are running so it can route calls.
+
+<Steps>
+<Step>
+### Create a Region
+1.  Go to **Admin Dashboard** -> **Infrastructure** -> **Regions**.
+2.  Click **Add Region**.
+3.  **Name:** `Default Region`.
+4.  **Identifier:** `us-east-1` (or your preferred code).
+</Step>
+
+<Step>
+### Register Proxy
+1.  Select the Region.
+2.  Add Server -> **Type: Proxy**.
+3.  **URL:** The internal docker address (e.g., `http://proxy:8080`) or public URL.
+4.  **Secret:** Paste the `ApiSecretToken` you set in `appsettings.json`.
+</Step>
+
+<Step>
+### Register Backend
+1.  Add Server -> **Type: Backend**.
+2.  **URL:** The address of your native backend service (e.g., `http://10.0.0.5:5000`).
+3.  **Secret:** Paste the `ApiSecretToken`.
+</Step>
+</Steps>
+
+---
+
+## 3. Seeding the Service Registry
+
+The platform supports "OpenAI", but the database doesn't know that yet. You must map the C# Classes to UI Definitions.
+
+<Callout type="info" title="Automatic Sync (Coming Soon)">
+  In future updates, we will provide an "Install Wizard" that syncs the latest service definitions from the Iqra Cloud repository automatically. For now, this is a manual process.
+</Callout>
+
+### Example: Adding OpenAI Support
+
+1.  Navigate to **Admin Dashboard** -> **Integrations**.
+2.  Create a new Integration Type:
+    *   **Name:** `OpenAI`
+    *   **Tags:** `LLM`, `TTS`
+    *   **Config Schema:** `{"ApiKey": "text"}`
+3.  Navigate to **Services**.
+4.  Create a new Service:
+    *   **Name:** `OpenAI GPT`
+    *   **Type:** `LLM`
+    *   **Service Key:** `OpenAILLMService` (**Critical:** Must match C# Class Name exactly).
+    *   **Link Integration:** Select `OpenAI`.
+
+Repeat this for every provider you wish to support (ElevenLabs, Deepgram, Twilio, etc.).
+
+---
+
+## 4. Verification
+
+To verify the entire stack is operational:
+
+1.  **Create User:** Go to the User Dashboard and sign up a new standard user.
+2.  **Create Business:** Create a workspace.
+3.  **Add Integration:** Add a real OpenAI Key to the business.
+4.  **Test Call:** Use the "Make Calls" button.
+
+If the call connects, audio flows, and the AI responds, your self-hosted cluster is fully operational.

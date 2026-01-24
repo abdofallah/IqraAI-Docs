@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/solar.css';
+@import 'fumadocs-ui/css/preset.css';
+@import 'fumadocs-openapi/css/preset.css';
+
+:root {
+    /* Iqra AI Brand Palette */
+    --iqra-light-cream: 241 236 232;
+    --iqra-cream: 209 191 174;
+    --iqra-lighter-green: 231 248 143;
+    --iqra-light-green: 203 229 78;
+    --iqra-dark-green: 148 180 71;
+    --iqra-darker-green: 95 104 51;
+    --iqra-dark: 26 26 26;
+
+    --fd-layout-width: 1400px;
+}
+
+@theme {
+    --color-fd-background: color-mix(in srgb, rgb(var(--iqra-light-cream)), white 50%);
+    --color-fd-article: color-mix(in srgb, rgb(var(--iqra-light-cream)), white 40%);
+
+    /* Primary: The Light Green (Pop color for buttons/active states) */
+    --color-fd-primary: color-mix(in srgb, rgb(var(--iqra-light-green)), black 45%);
+
+    /* Secondary: Dark Green */
+    --color-fd-secondary: rgb(var(--iqra-light-green));
+
+    --color-fd-muted-foreground: rgb(var(--iqra-dark));
+
+    /* Accents: Lighter Green */
+    --color-fd-accent: rgb(var(--iqra-light-green));
+    --color-fd-accent-foreground: color-mix(in srgb, rgb(var(--iqra-dark-green)), black 30%);
+
+    /* Borders */
+    --color-fd-ring: rgb(var(--iqra-dark-green));
+}
+
+.dark {
+    /* Background: Deep dark (almost black) */
+    --color-fd-background: rgb(var(--iqra-dark));
+
+    /* Foreground: Light Cream */
+    --color-fd-foreground: rgb(var(--iqra-light-cream));
+
+    /* Card: Slightly lighter than background */
+    --color-fd-card: color-mix(in srgb, rgb(var(--iqra-dark)), white 3%);
+    --color-fd-card-foreground: rgb(var(--iqra-light-cream));
+
+    /* Popover */
+    --color-fd-popover: rgb(var(--iqra-dark));
+    --color-fd-popover-foreground: rgb(var(--iqra-light-cream));
+
+    /* Primary: The Light Green (Pop color for buttons/active states) */
+    --color-fd-primary: rgb(var(--iqra-light-green));
+    --color-fd-primary-foreground: rgb(var(--iqra-dark));
+
+    /* Secondary: Dark Green */
+    --color-fd-secondary: rgb(var(--iqra-darker-green));
+    --color-fd-secondary-foreground: rgb(var(--iqra-light-cream));
+
+    /* Muted: Subtle borders and text */
+    --color-fd-muted: color-mix(in srgb, rgb(var(--iqra-dark)), white 10%);
+    --color-fd-muted-foreground: rgb(var(--iqra-cream));
+
+    /* Accents: Lighter Green */
+    --color-fd-accent: rgb(var(--iqra-dark-green));
+    --color-fd-accent-foreground: rgb(var(--iqra-lighter-green));
+
+    /* Borders */
+    --color-fd-border: color-mix(in srgb, rgb(var(--iqra-dark)), white 15%);
+    --color-fd-ring: rgb(var(--iqra-light-green));
+}

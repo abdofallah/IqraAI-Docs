@@ -1,0 +1,66 @@
+---
+title: Introduction
+description: The complete orchestration platform for building high-performance Voice AI Agents.
+---
+
+import { Cpu, Globe, Share2, Layers, Zap, Code } from 'lucide-react';
+
+# What is Iqra AI?
+
+**Iqra AI** is a comprehensive, low-code platform designed to build, deploy, and manage Voice AI Agents. Created by [Badal Technologies](https://www.badal.om) in the Sultanate of Oman, it serves as the bridge between raw LLM intelligence and real-world telephony requirements.
+
+Unlike simple wrappers that hide functionality behind a single prompt box, Iqra AI is an **Orchestration Engine**. We provide a visual interface for complex logic while exposing deep-level controls—allowing you to manage latency, interruption behavior, and conversation flow with precision.
+
+<Callout type="info" title="Open Source">
+  Iqra AI is open-source at heart! You can access the core engine on [GitHub](https://github.com/abdofallah/IqraAI).
+</Callout>
+
+## Core Philosophies
+
+Iqra AI was built to solve specific challenges in the Voice AI space: **Latency**, **Localization**, and **Control**.
+
+<Cards>
+  <Card icon={<Globe />} title="Native Multi-Language" href="/intro/concepts#multi-language">
+    Don't rely on auto-translation. Define specific prompts, logic, and integrations for each language (e.g., English & Arabic) within a single agent to ensure grammatical accuracy and cultural relevance.
+  </Card>
+  
+  <Card icon={<Zap />} title="Multi-Region Latency" href="/intro/concepts#multi-region">
+    You control the physics. Select specific regions for your phone numbers and processing servers to ensure your TTS, STT, and LLM are physically close, minimizing delay.
+  </Card>
+  
+  <Card icon={<Share2 />} title="Graph-Based Logic" href="/build/script">
+    Separate "Personality" from "Logic". Build complex flows using our Node Graph—handle user queries, execute tools, and branch logic visually.
+  </Card>
+  
+  <Card icon={<Layers />} title="Agency & Enterprise" href="/platform/whitelabel">
+    Built for scale. Features a robust Whitelabeling system, allowing agencies to rebrand the platform, manage customer billing, and create custom subscription plans.
+  </Card>
+</Cards>
+
+## Editions
+
+Iqra AI is available in two forms depending on your needs.
+
+### Iqra Cloud (SaaS)
+The fully managed, production-ready platform hosted at [app.iqra.bot](https://app.iqra.bot).
+*   **Billing System:** Manage balance, subscriptions, and auto-refills.
+*   **Whitelabeling:** Create custom domains and plans for your clients.
+*   **Managed Infrastructure:** Zero setup, instant scaling.
+
+### Open Source
+The core technology available for self-hosting.
+*   **Full Engine:** Access to the Agent capabilities, Script builder, and Integrations.
+*   **Exclusions:** Does *not* include the multi-tenant Billing system or Whitelabeling management features.
+
+## Getting Started
+
+Ready to build your first agent? We recommend understanding how the platform is structured first.
+
+<Cards>
+  <Card icon={<Cpu />} title="Architecture" href="/intro/architecture">
+    Learn how Users, Businesses, and Workspaces interact.
+  </Card>
+  <Card icon={<Code />} title="Quick Start" href="/intro/quick-start">
+    Jump straight into creating your first phone call.
+  </Card>
+</Cards>

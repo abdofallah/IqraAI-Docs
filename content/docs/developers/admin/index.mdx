@@ -1,0 +1,41 @@
+---
+title: Admin Dashboard
+description: The Super Admin interface for managing infrastructure, regions, and service registries.
+---
+
+import { ShieldAlert, Server, Database, Settings, Plug } from 'lucide-react';
+
+The **Admin Dashboard** is a restricted interface designed for the **Platform Owner**.
+
+If you are **Self-Hosting** Iqra AI, you will spend significant time here during the initial setup. This dashboard allows you to define the physical topology of your deployment (Servers & Regions) and the logical capabilities of your platform (Integrations & Services).
+
+<Callout type="error" title="Access Control">
+  This dashboard grants full control over the platform's infrastructure. Ensure only trusted administrators have access roles.
+</Callout>
+
+## Why is this needed?
+
+Iqra AI is a **Distributed System**. The code (Backend App) needs to know about the Database, and the Database needs to know where the code is running.
+
+1.  **Infrastructure Discovery:** If you deploy a new Backend Server in "London", the Proxy doesn't magically know it exists. You must register it here so the Load Balancer includes it in the rotation.
+2.  **Dynamic Integrations:** When you add support for a new LLM provider in the code, you must register it here so users can see it in their dropdown menus.
+
+## Core Modules
+
+<Cards>
+  <Card icon={<Server />} title="Infrastructure" href="/developers/admin/infrastructure">
+    **Topology.** Define **Regions** (e.g., US-East, EU-Central) and register the **Proxy** and **Backend** servers running in those regions.
+  </Card>
+  
+  <Card icon={<Plug />} title="Service Registry" href="/developers/admin/services">
+    **Capabilities.** Map the C# Service classes (e.g., `GroqCloudLLMService`) to user-facing Integration options. Configure default API keys and global limits.
+  </Card>
+</Cards>
+
+## Operational Management
+
+Beyond setup, the Admin Dashboard provides oversight for the running platform.
+
+*   **User Management:** View, edit, or ban users across the entire platform.
+*   **Business Oversight:** Access any Business Workspace for debugging or support purposes.
+*   **Global Settings:** Configure platform-wide variables (SMTP settings, S3 Storage credentials).

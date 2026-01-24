@@ -1,0 +1,148 @@
+---
+title: Web Widget SDK
+description: A framework-agnostic JavaScript library for embedding Voice AI into any website.
+---
+
+import { Globe, Code, Zap, LayoutTemplate } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **Iqra AI Web Widget** is a lightweight JavaScript library that handles the complexity of WebRTC audio streaming, microphone permissions, and connection state management.
+
+It supports two modes:
+1.  **Inline Form:** A pre-built, styled UI that renders inside a container.
+2.  **Headless:** Full programmatic control to build your own UI.
+
+## Installation
+
+Currently, the SDK is available via CDN. Add this script to your HTML file (usually before `</body>`).
+
+```html
+<script src="https://cdn.iqra.bot/sdk/voice-ai-widget.umd.js"></script>
+```
+
+---
+
+## Mode 1: Turnkey (Inline Form)
+
+Use this if you want to get up and running instantly. The SDK will render a form collecting user details before starting the call.
+
+**HTML:**
+```html
+<div id="voice-widget-container"></div>
+```
+
+**JavaScript:**
+```javascript
+const client = VoiceAiWidget.init({
+    // 1. URL of your middleware (Required)
+    middlewareUrl: 'https://api.your-middleware.com',
+
+    // 2. Where to render the widget (Required for UI mode)
+    container: '#voice-widget-container',
+
+    // 3. Define the form fields
+    formFields: [
+        { 
+            name: 'firstName', 
+            label: 'First Name', 
+            type: 'text', 
+            target: 'dynamicVariable', // Sends as {{ firstName }} to Agent
+            required: true 
+        },
+        { 
+            name: 'email', 
+            label: 'Email Address', 
+            type: 'email', 
+            target: 'metadata', // Sends as call metadata
+            required: true 
+        }
+    ]
+});
+```
+
+---
+
+## Mode 2: Headless (Custom UI)
+
+Use this if you want to build your own "Start Call" button or integrate deeply into a React/Vue app.
+
+**JavaScript:**
+```javascript
+// Initialize without a 'container'
+const client = VoiceAiWidget.init({
+    middlewareUrl: 'https://api.your-middleware.com'
+});
+
+// 1. Listen to state changes to update your UI
+client.on('stateChange', ({ state, data }) => {
+    console.log('Current State:', state); 
+    
+    if (state === 'QUEUED') {
+        alert(`System busy. You are position #${data.queuePosition} in line.`);
+    }
+});
+
+// 2. Start the session manually
+function onStartClick() {
+    client.startSession({
+        dynamicVariables: { firstName: 'Ali' },
+        metadata: { source: 'custom-ui' }
+    });
+}
+
+// 3. Hang up
+function onHangupClick() {
+    client.hangUp();
+}
+```
+
+---
+
+## Configuration Reference
+
+The `init(options)` object accepts:
+
+| Option | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `middlewareUrl` | `string` | **Yes** | The base URL of your hosted [Middleware](/developers/sdks/middleware). |
+| `container` | `string` | No | CSS selector (e.g., `#app`). If provided, UI mode is enabled. |
+| `formFields` | `Array` | No | Definitions for the input form (UI mode only). |
+
+### Form Field Object
+```typescript
+{
+    name: string;       // Unique ID
+    label: string;      // Display text
+    type?: 'text' | 'email' | 'tel';
+    target: 'dynamicVariable' | 'metadata';
+    required?: boolean;
+}
+```
+
+---
+
+## Events & States
+
+The `stateChange` event is the heartbeat of the SDK.
+
+```javascript
+client.on('stateChange', (payload) => {
+    const { state, data } = payload;
+});
+```
+
+| State | Description | Data Payload |
+| :--- | :--- | :--- |
+| `IDLE` | Ready to start. No active call. | `undefined` |
+| `CONNECTING` | Contacting middleware/server. | `undefined` |
+| `QUEUED` | Waiting for a slot (Concurrency limit). | `{ queuePosition: number }` |
+| `CONNECTED` | Call is live. Audio is streaming. | `undefined` |
+| `ERROR` | An error occurred (Mic denied, Network fail). | `{ message: string }` |
+
+---
+
+## Requirements
+
+<Callout type="error" title="HTTPS Required">
+  Modern browsers block Microphone access (`getUserMedia`) on insecure origins. Both your website and your middleware **must** be served over **HTTPS** (localhost is exempt for testing).
+</Callout>

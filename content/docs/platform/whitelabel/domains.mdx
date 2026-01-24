@@ -1,0 +1,90 @@
+---
+title: Domains & SSL
+description: Configure custom domains and secure connections for your whitelabel portal.
+---
+
+import { Globe, Lock, Server, AlertTriangle } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **Domains** module is the backbone of the whitelabeling experience. It allows your customers to access their dashboard via your own URL (e.g., `agent.yourcompany.com`) rather than `iqra.bot`.
+
+## How it Works
+
+When you add a custom domain, Iqra AI maps incoming traffic from that URL to your specific whitelabel settings.
+
+1.  **You** add the domain in the dashboard.
+2.  **You** configure your DNS provider (GoDaddy, Cloudflare, Namecheap, etc.).
+3.  **We** verify the connection and provision SSL certificates.
+4.  **Your Clients** log in securely via your domain.
+
+---
+
+## Adding a Domain
+
+<Steps>
+<Step>
+### Register the Domain
+Navigate to **Whitelabel** -> **Domains** and click **Add Domain**.
+</Step>
+
+<Step>
+### Enter Domain Name
+Enter the full domain or subdomain you wish to use.
+*   **Subdomain (Recommended):** `app.agency.com`, `portal.agency.com`
+*   **Root Domain:** `agency-portal.com`
+
+<Callout type="warn" title="No Paths">
+  Do not include protocols (`https://`) or paths (`/login`). Just the domain name.
+</Callout>
+</Step>
+
+<Step>
+### DNS Configuration (CNAME)
+You must prove ownership of the domain and route traffic to us. Log in to your DNS provider and add a **CNAME Record**.
+
+| Type | Name (Host) | Value (Target) | TTL |
+| :--- | :--- | :--- | :--- |
+| **CNAME** | `@` or `subdomain` | `whitelabel.iqra.bot` | Automatic / 1 Hour |
+
+> **Example:** If your domain is `agent.mybrand.com`, the Name/Host is `agent` and the Value is `whitelabel.iqra.bot`.
+</Step>
+
+<Step>
+### SSL Configuration
+Choose how you want to secure the connection (HTTPS).
+
+*   **Automatic SSL (Recommended):** We use Let's Encrypt to automatically provision and renew certificates for you. Zero maintenance required.
+*   **Custom SSL:** If you have your own certificate (e.g., for enterprise compliance), you can upload your **Private Key** and **Certificate Chain** manually.
+</Step>
+
+<Step>
+### Verification
+Once saved, Iqra AI will check for the CNAME record.
+*   **Status: Pending** - DNS changes are propagating (can take up to 24 hours, usually minutes).
+*   **Status: Active** - The domain is ready to use.
+</Step>
+</Steps>
+
+## Domain Branding Overrides
+
+A unique feature of Iqra AI is **Per-Domain Branding**.
+
+If you have multiple domains (e.g., `agent.brand-a.com` and `agent.brand-b.com`), you can override the branding settings for each specific domain.
+
+1.  Click the **Edit** icon next to an active domain.
+2.  Navigate to the **Branding Override** section.
+3.  Upload a logo or inject CSS specific to *this* domain only.
+
+This allows a single Agency account to serve multiple distinct sub-brands.
+
+---
+
+## Troubleshooting
+
+<Callout type="info" title="DNS Propagation">
+  If your domain status is stuck in "Pending", please wait. DNS changes can take time to propagate across the internet. You can use tools like [whatsmydns.net](https://whatsmydns.net) to check if your CNAME is pointing to `whitelabel.iqra.bot`.
+</Callout>
+
+**Common Errors:**
+*   **Proxy Status (Cloudflare):** If you use Cloudflare, ensure the "Proxy Status" is set to **DNS Only** (Grey Cloud) initially for verification.
+*   **Conflicting Records:** Ensure there are no A Records or other CNAME records for the same subdomain.

@@ -1,0 +1,123 @@
+---
+title: Quick Start
+description: Build and deploy your first Voice AI Agent in under 5 minutes.
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Network, Bot, PhoneOutgoing, Plus } from 'lucide-react';
+
+In this guide, we will set up a fully functional outbound Voice AI agent. We will create a **Business**, connect your **AI Providers**, and make a **Test Call** to your own phone.
+
+## Prerequisites
+
+To complete this tutorial, ensure you have API keys for the following services:
+*   **LLM:** OpenAI or Azure.
+*   **TTS (Text-to-Speech):** ElevenLabs, Azure, or OpenAI.
+*   **STT (Speech-to-Text):** Deepgram or Azure.
+*   **Telephony:** Twilio, Telnyx, or Vonage (for the phone number).
+
+<Callout type="warn" title="SaaS vs Self-Hosted">
+  If you are using **Iqra Cloud (SaaS)**, ensure you have added credits to your balance in the **Billing** tab.
+</Callout>
+
+---
+
+<Steps>
+<Step>
+### Create a Business Workspace
+
+Everything in Iqra AI happens inside a **Business**.
+
+1.  Navigate to the **Businesses Tab** in your User Dashboard.
+2.  Click **Add Business**.
+3.  Give it a name (e.g., "My First Agency") and upload a logo if desired.
+4.  Click on the newly created business card to enter the **Business Dashboard**.
+
+</Step>
+
+<Step>
+### Connect Integrations
+
+We need to give the agent its capabilities. Go to the **Integrations Tab** in the Business Dashboard.
+
+1.  **LLM:** Click **Add Integration** → Select **OpenAI** → Paste your API Key.
+2.  **STT:** Click **Add Integration** → Select **Deepgram** → Paste your API Key.
+3.  **TTS:** Click **Add Integration** → Select **ElevenLabs** → Paste your API Key.
+4.  **Telephony:** Click **Add Integration** → Select **Twilio** → Add your Account SID and Auth Token.
+
+<Callout type="info">
+  You can use different providers if you prefer (e.g., Azure for everything), but this combination usually offers the best balance of quality and latency.
+</Callout>
+</Step>
+
+<Step>
+### Create the Agent (The Persona)
+
+Now, let's define *who* is speaking. Go to the **Agents Tab**.
+
+1.  Click **Add Agent**.
+2.  **General:** Name it "Sarah".
+3.  **Personality:** Enter "You are a helpful receptionist for a dental clinic."
+4.  **Integrations:** Select the integrations you added in the previous step for English.
+5.  **Utterances:** Set **Agent Speaks First** to `ON` and set the greeting to: *"Hello, thanks for calling Medina Dental, how can I help you?"*
+6.  Save the Agent.
+
+</Step>
+
+<Step>
+### Create the Script (The Logic)
+
+We need to tell the agent *how* to handle the conversation. Go to the **Scripts Tab**.
+
+1.  Click **Add Script**.
+2.  In the Graph Editor, you will see a **Start Node**.
+3.  Right-click the canvas to add nodes:
+    *   Add a **User Query** node (e.g., "Book Appointment").
+    *   Add an **AI Response** node (e.g., "Sure, what time works for you?").
+    *   Connect the **Start Node** to the **User Query** node.
+4.  Save the Script.
+
+*Note: For a simple test, you can leave the script empty or minimal; the LLM will handle general conversation based on the personality defined in the Agent.*
+
+</Step>
+
+<Step>
+### Setup Routing
+
+Before we call, we need to link the Agent to a Campaign or Route.
+
+1.  Go to **Telephony Campaigns**.
+2.  Create a new Campaign.
+3.  Select "Sarah" as the **Agent** and your new script as the **Script**.
+4.  Select your Twilio integration/number in **Number Route**.
+
+</Step>
+
+<Step>
+### Make a Call
+
+The moment of truth. Let's trigger a call manually from the dashboard.
+
+1.  Click the **Make Calls** button in the sidebar (or header actions).
+2.  Select **Single Call**.
+3.  **Campaign:** Select the campaign you just created.
+4.  **Phone Number:** Enter your personal phone number (with country code).
+5.  Click **Launch Call**.
+
+Your phone should ring within a few seconds. Answer it, and speak to your new AI agent!
+
+</Step>
+</Steps>
+
+## Next Steps
+
+Now that you have a basic agent running, it is time to make it smart.
+
+<Cards>
+  <Card icon={<Network />} title="Script Builder" href="/build/script">
+    Learn how to build complex logic flows and use tools.
+  </Card>
+  <Card icon={<Bot />} title="Interruption Logic" href="/build/agent#interruptions">
+    Fine-tune how the agent handles interruptions and silence.
+  </Card>
+</Cards>

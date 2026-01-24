@@ -1,0 +1,71 @@
+---
+title: API Keys
+description: Generating and managing secure access tokens for programmatic control.
+---
+
+import { Key, ShieldCheck, Terminal, AlertTriangle } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI provides a full REST API, allowing you to manage your businesses, trigger calls, and retrieve conversation history programmatically. **API Keys** are the credentials used to authenticate these requests.
+
+## Key Types & Scopes
+
+To ensure security, Iqra AI allows you to scope your API keys.
+
+| Scope | Description | Best For |
+| :--- | :--- | :--- |
+| **Unrestricted (Master)** | Grants full access to **all** businesses owned by your user account. | account-level automation scripts. |
+| **Business Restricted** | Limits access to specific Business Workspaces only. | Production apps, client-side integrations, or team members. |
+
+<Callout type="warn" title="Security Best Practice">
+  Always use **Business Restricted** keys whenever possible. If a restricted key is compromised, it only puts that specific workspace at risk, not your entire account.
+</Callout>
+
+## Managing API Keys
+
+You can generate and revoke keys in the **API Keys Tab** of the User Dashboard.
+
+<Steps>
+<Step>
+### Create New Key
+Click the **"Add API Key"** button.
+</Step>
+
+<Step>
+### Configure Permissions
+1.  **Name:** Give it a descriptive name (e.g., "Zapier Integration - Dental Clinic").
+2.  **Scope:** Choose either "Unrestricted" or select specific Businesses from the dropdown.
+</Step>
+
+<Step>
+### Copy Key
+**Important:** The key is only shown *once* upon creation. Copy it immediately and store it securely (e.g., in your `.env` file). If you lose it, you will have to generate a new one.
+</Step>
+</Steps>
+
+## Using the API
+
+All API requests must be authenticated via the HTTP Header.
+
+### Endpoint
+The base URL for the API is:
+```bash
+https://app.iqra.bot/api/v1
+```
+
+### Authentication Header
+Pass your key in the `Authorization` header using the `Token` prefix.
+
+```bash title="Example Request (cURL)"
+curl -X POST https://app.iqra.bot/api/v1/calls \
+  -H "Authorization: Token iqra_sk_12345abcdef" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "campaign_id": "camp_123",
+    "to_number": "+1234567890"
+  }'
+```
+
+<Callout type="error" title="Keep it Secret">
+  Never expose your API Key in client-side code (browsers, mobile apps). Always make API requests from your backend server.
+</Callout>

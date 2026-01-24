@@ -1,0 +1,73 @@
+---
+title: Agent Persona
+description: Defining the personality, context, and opening behavior of your Voice AI.
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { User, Library, Mic, Settings2 } from 'lucide-react';
+
+The **Agent** represents the "Persona" of your Voice AI. While the Script handles the logic/flow, the Agent defines *who* is speaking, what they know about your brand, and how they behave tonally.
+
+## Creating an Agent
+
+Navigate to **Business Dashboard** -> **Agents** and click **Add Agent**. You will be presented with a tabbed interface to configure the persona.
+
+<Steps>
+<Step>
+### General Information
+Give your agent an internal name (e.g., "Sarah - Sales") and a description. This helps you identify them when assigning them to campaigns later.
+</Step>
+
+<Step>
+### Context Injection
+Instead of manually typing your company address or pricing into every prompt, Iqra AI allows you to "Inject" context from your Business Data.
+
+Toggle the modules you want this agent to know about:
+*   **Branding:** Company name, website, support email.
+*   **Services/Products:** The list of items you sell (Name, Short Description).
+*   **Branches:** Locations and working hours.
+
+<Callout type="info" title="Optimization">
+  Only inject what is necessary. If an agent is for "Technical Support", they might not need to know the entire "Sales Product Catalog" in their system prompt.
+</Callout>
+</Step>
+
+<Step>
+### Personality (System Prompt)
+This section constructs the dynamic System Prompt for the LLM.
+
+*   **Name:** The name the agent will use to refer to itself (e.g., "Sarah").
+*   **Role:** The job title (e.g., "Senior Appointment Setter").
+*   **Capabilities:** Bullet points of what it can do (e.g., "Book meetings," "Answer FAQs").
+*   **Ethics:** Critical boundaries (e.g., "Never ask for credit card numbers," "Be polite but firm").
+*   **Tone:** The vibe of the conversation (e.g., "Professional," "Casual," "Empathetic").
+
+> **Multi-Language Tip:** You must define these fields for **each language** enabled in your business. This ensures the Arabic agent has a culturally appropriate tone compared to the English agent.
+</Step>
+
+<Step>
+### Utterances (Greetings)
+Define how the call starts.
+
+*   **Agent Speaks First:**
+    *   **Enabled:** The agent says the greeting immediately upon connection (Standard for Outbound).
+    *   **Disabled:** The agent waits for the user to say "Hello?" (Standard for Inbound).
+*   **Greeting Message:** The exact text the agent will speak first. You can use variables here like `Hi {{ name }}`.
+</Step>
+</Steps>
+
+## Advanced Configuration
+
+Once the Persona is defined, you need to configure the "Senses" (Hearing and Speaking) and the "Brain" (Knowledge).
+
+<Cards>
+  <Card icon={<Mic />} title="Interruption Engine" href="/build/agent/interruption">
+    Configure **VAD** and **Turn-Taking** logic to handle interruptions naturally.
+  </Card>
+  <Card icon={<Settings2 />} title="Intelligence & Integrations" href="/build/agent/intelligence">
+    Connect specific LLM models, TTS voices, and Fallback providers.
+  </Card>
+  <Card icon={<Library />} title="Knowledge Base" href="/build/agent/intelligence#knowledge-base">
+    Connect RAG documents and define search triggers.
+  </Card>
+</Cards>

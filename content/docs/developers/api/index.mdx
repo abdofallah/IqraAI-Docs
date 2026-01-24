@@ -1,0 +1,65 @@
+---
+title: API Overview
+description: Protocols, authentication, and standards for the Iqra AI REST API.
+---
+
+import { Key, Globe, Shield, AlertTriangle } from 'lucide-react';
+
+The Iqra AI API provides programmatic access to your User and Business dashboards. You can use it to launch calls, manage agents, and retrieve conversation history without logging into the UI.
+
+## Base URL
+
+All endpoints are prefixed with the current version identifier:
+
+```bash
+https://app.iqra.bot/api/v1
+```
+
+## Authentication
+
+The API uses **Token-based Authentication**. You must include your API Key in the HTTP Header of every request.
+
+1.  Generate a key in the [User Dashboard](/platform/api-keys).
+2.  Add the `Authorization` header with the `Token` prefix (note the space).
+
+```http
+Authorization: Token iqra_sk_12345abcdef
+```
+
+<Callout type="error" title="Common Mistake">
+  Do not use `Bearer` prefix. Iqra AI strictly uses `Token`.
+</Callout>
+
+### Failed Auth Response
+If your key is missing or invalid, the API returns `401 Unauthorized`.
+
+```json
+{
+  "detail": "Invalid token."
+}
+```
+
+## Content Types
+
+*   **Requests:** Must accept and send JSON. Set `Content-Type: application/json`.
+*   **Responses:** All responses are JSON objects.
+
+## Rate Limiting
+
+To protect the platform, we enforce rate limits on API usage.
+*   **Standard:** 60 requests per minute.
+*   **Headers:** Check `X-RateLimit-Remaining` in the response headers to track your usage.
+
+If you exceed the limit, you will receive `429 Too Many Requests`.
+
+---
+
+## Interactive Documentation
+
+Ready to make a request? Visit the **V1 Reference** to use the interactive playground.
+
+<Cards>
+  <Card icon={<Globe />} title="Go to API Reference" href="/developers/api/v1">
+    Browse endpoints, see schemas, and test calls directly in your browser.
+  </Card>
+</Cards>

@@ -1,0 +1,142 @@
+---
+title: Configuration
+description: Configuring appsettings.json, connection strings, and security secrets.
+---
+
+import { Settings, FileJson, Key, Shield, Database } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI applications are built on ASP.NET Core and are configured via `appsettings.json`.
+
+While each application (Frontend, Proxy, Backend) has its own file, they share a common structure for connecting to the Data Layer.
+
+## 1. Shared Connection Strings
+
+Every application needs to talk to the databases. You must ensure these strings match the infrastructure you set up in the [Dependencies](/developers/self-hosting/dependencies) step.
+
+```json title="appsettings.json (Shared)"
+{
+  "ConnectionStrings": {
+    "MongoDB": "mongodb://admin:password123@localhost:27017",
+    "Redis": "localhost:6379,abortConnect=false",
+    "Milvus": "localhost",
+    "MilvusPort": "19530"
+  }
+}
+```
+
+## 2. The Internal Handshake
+
+To secure communication between the **Proxy** (Gateway) and the **Backend** (Processor), we use a shared secret token.
+
+*   **Requirement:** This string must be identical across all your deployed services.
+*   **Usage:** It is sent in the `X-Internal-Secret` header for inter-service API calls.
+
+```json
+{
+  "General": {
+    "ApiSecretToken": "CHANGE_ME_TO_A_LONG_RANDOM_STRING"
+  }
+}
+```
+
+---
+
+## 3. Backend Configuration
+
+The **IqraBackendApp** requires specific configuration for Audio Processing and Object Storage.
+
+```json title="IqraBackendApp/appsettings.json"
+{
+  "ConnectionStrings": { ... }, // Same as above
+  "General": { "ApiSecretToken": "..." }, // Same as above
+
+  // S3 / RustFS Configuration
+  "Storage": {
+    "ServiceUrl": "http://localhost:9000",
+    "AccessKey": "admin",
+    "SecretKey": "password123",
+    "BucketName": "iqra-assets",
+    "ForcePathStyle": true // Required for RustFS/MinIO
+  },
+
+  // Real-time Audio Settings
+  "AudioSettings": {
+    "SampleRate": 8000,       // Standard Telephony Rate (8kHz)
+    "FrameSize": 20,          // ms per packet
+    "JitterBufferMs": 200,    // Buffer for network instability
+    "VadSensitivity": 2       // 0-3 (3 is most sensitive)
+  },
+
+  // Load Balancing Limits
+  "Server": {
+    "ExpectedMaxConcurrentCalls": 100 // Max calls this node accepts before rejecting
+  }
+}
+```
+
+## 4. Frontend Configuration
+
+The **IqraFrontend** handles User Authentication and the UI.
+
+```json title="IqraFrontend/appsettings.json"
+{
+  "ConnectionStrings": { ... }, 
+  
+  // JWT Authentication for Users
+  "Jwt": {
+    "Key": "SUPER_SECRET_KEY_MUST_BE_32_CHARS_LONG",
+    "Issuer": "iqra.bot",
+    "Audience": "iqra.bot",
+    "ExpiryDays": 7
+  },
+
+  // Initial Admin Setup
+  "Admin": {
+    "DefaultEmail": "admin@localhost.com",
+    "DefaultPassword": "AdminPassword123!" // Change immediately after login
+  }
+}
+```
+
+## 5. Proxy Configuration
+
+The **IqraProxyApp** acts as the router.
+
+```json title="IqraProxyApp/appsettings.json"
+{
+  "ConnectionStrings": { ... },
+  "General": { "ApiSecretToken": "..." },
+  
+  // Public URL for Webhooks (Required for Twilio validation)
+  "Server": {
+    "PublicUrl": "https://proxy.your-domain.com"
+  }
+}
+```
+
+---
+
+## Environment Variables (Docker)
+
+If you are deploying via Docker, **do not** edit the `appsettings.json` file inside the image. Instead, override the settings using Environment Variables.
+
+ASP.NET Core uses the double underscore `__` to represent nested JSON keys.
+
+| JSON Path | Environment Variable |
+| :--- | :--- |
+| `ConnectionStrings` -> `MongoDB` | `ConnectionStrings__MongoDB` |
+| `Storage` -> `SecretKey` | `Storage__SecretKey` |
+| `General` -> `ApiSecretToken` | `General__ApiSecretToken` |
+
+**Example Docker Compose Entry:**
+
+```yaml
+services:
+  backend:
+    image: iqra-backend:latest
+    environment:
+      - ConnectionStrings__MongoDB=mongodb://mongo:27017
+      - General__ApiSecretToken=my-secret-token
+      - Storage__ServiceUrl=http://rustfs:9000
+```
