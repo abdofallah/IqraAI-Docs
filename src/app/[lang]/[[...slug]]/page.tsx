@@ -36,7 +36,6 @@ export default async function Page(props: {
 
                 <PageActions markdownUrl={markdownUrl} />
 
-                <DocsDescription dir={rightToLeftLanguages.includes(params.lang) ? 'rtl' : 'ltr'}>{page.data.description}</DocsDescription>
                 <DocsBody dir={rightToLeftLanguages.includes(params.lang) ? 'rtl' : 'ltr'}>
                     <APIPage {...page.data.getAPIPageProps()} />
                 </DocsBody>
