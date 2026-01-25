@@ -1,0 +1,108 @@
+---
+title: The Foundation
+description: Build the Brain, Persona, and Logic of your first AI Agent.
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Bot, GitFork, PhoneOutgoing, PhoneIncoming, Globe, Database, Wrench, Settings2 } from 'lucide-react';
+
+Before you can make a phone call or deploy a web agent, you need to build the **Core Intelligence**. This guide covers setting up the "Brain" (AI Models), the "Persona" (Agent), and the "Logic" (Script).
+
+## Prerequisites
+
+To complete this tutorial, ensure you have API keys for your preferred AI providers:
+*   **LLM (Brain):** GroqCloud, Anthropic Claude, OpenAI, Google Gemini.
+*   **TTS (Voice):** ElevenLabs, Deepgram, Azure Speech.
+*   **STT (Ears):** Deepgram, Azure Speech.
+
+<Callout type="warn" title="Infrastructure First">
+  If you are **Self-Hosting**, ensure you have registered these providers in the [Admin Dashboard](/developers/admin/services) first. If you are using **Iqra Cloud**, they are pre-configured; you just need your API keys.
+</Callout>
+
+---
+
+<Steps>
+<Step>
+### Create a Business Workspace
+
+Everything in Iqra AI happens inside a **Business** container.
+
+1.  Navigate to the **Businesses Tab** in your User Dashboard.
+2.  Click **Add Business**.
+3.  Give it a name (e.g., "My First Agency") and upload a logo if desired.
+4.  Click on the newly created business card to enter the **Business Dashboard**.
+
+<Callout type="info" title="Deep Dive">
+  Learn more about managing workspaces and team isolation in the **[Business Management](/platform/businesses)** guide.
+</Callout>
+</Step>
+
+<Step>
+### Connect AI Integrations
+
+Give your business the resources it needs to think, hear, and speak.
+
+1.  Go to the **Integrations Tab** in the Business Dashboard.
+2.  **Add LLM:** Click *Add Integration* → Select **GroqCloud** → Paste your API Key.
+3.  **Add STT:** Click *Add Integration* → Select **Azure Speech** → Paste your API Key.
+4.  **Add TTS:** Click *Add Integration* → Select **ElevenLabs** → Paste your API Key.
+
+<Callout type="info" title="Deep Dive">
+  Need help finding your keys? Check our specific guides for **[Azure](/integrations/providers/azure)**, **[OpenAI](/integrations/providers/openai)**, and **[ElevenLabs](/integrations/providers/elevenlabs)**.
+</Callout>
+</Step>
+
+<Step>
+### Create the Agent (The Persona)
+
+Define *who* is speaking.
+
+1.  Go to the **Agents Tab**.
+2.  Click **Add Agent**.
+3.  **General:** Name it "Iqra".
+4.  **Personality:** Enter a instruction prompt: *"You are a helpful receptionist for a dental clinic. Be polite and concise."*
+5.  **Intelligence:** Select the integrations you added in Step 2.
+6.  **Utterances:** Set **Agent Speaks First** to `ON` with greeting: *"Hello! Thanks for calling Medina Dental. How can I help you?"*
+7.  Save the Agent.
+
+<Callout type="info" title="Deep Dive">
+  The **[Agent engine](/build/agent)** is powerful. Learn how to configure **[Interruption Logic](/build/agent/interruption)** (VAD/Barge-in) and **[Multi-Language](/build/agent/multi-language)** support.
+</Callout>
+</Step>
+
+<Step>
+### Create the Script (The Logic)
+
+Define *what* happens.
+
+1.  Go to the **Scripts Tab**.
+2.  Click **Add Script**.
+3.  **The Visual Builder:** You will see a `Start Node`.
+4.  **Drag & Drop:**
+    *   Drag a **User Query** node from the sidebar. Connect it to Start.
+    *   Drag an **AI Response** node. Connect it to User Query.
+5.  **Save** the Script.
+
+<Callout type="info" title="Deep Dive">
+  Master the **[visual builder](/build/script)**. Learn about **[Script Nodes](/build/script/nodes)**, injecting variables with **[Templating](/build/script/templating)**, and using **[FlowApps](/build/script/flowapps)** for external tools.
+</Callout>
+</Step>
+</Steps>
+
+## Deploy Your Agent
+
+Your "Iqra" agent is now alive, but she has no way to talk to the world. Choose a channel to deploy her.
+
+<Cards>
+  <Card icon={<PhoneOutgoing />} title="Make a Phone Call" href="/intro/quick-start/outbound">
+    **Outbound Telephony.** Connect a Twilio/Telnyx/SIP number and trigger a call to your own phone.
+  </Card>
+  
+  <Card icon={<PhoneIncoming />} title="Receive Phone Calls" href="/intro/quick-start/inbound">
+    **Inbound Telephony.** Connect a Twilio/Telnyx/SIP number and have the agent pick up incoming calls.
+  </Card>
+  
+  <Card icon={<Globe />} title="Web Agent" href="/intro/quick-start/web">
+    **Real-time Web.** Create a high-fidelity web session and test it in your browser using our Client SDK.
+  </Card>
+</Cards>

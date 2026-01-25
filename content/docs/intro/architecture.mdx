@@ -1,36 +1,75 @@
 ---
 title: Architecture
-description: Understanding the hierarchy of Users, Businesses, and Workspaces.
+description: Understanding the hierarchy of Users, Agencies, and Business Workspaces.
 ---
 
-import { User, Building2, CreditCard, Users, Bot, GitFork, Phone } from 'lucide-react';
+import { User, Building2, CreditCard, Users, Bot, GitFork, Phone, Database, Blocks, Network } from 'lucide-react';
 
-Iqra AI follows a hierarchical structure designed to support individual developers, agencies, and large enterprises simultaneously. Understanding this hierarchy is crucial for managing billing, permissions, and data isolation effectively.
+Iqra AI follows a hierarchical structure designed to support individual developers, agencies, and large enterprises simultaneously.
 
-## High-Level Hierarchy
+The platform is divided into two distinct layers:
+1.  **The Management Layer:** Handles Billing, Tenancy, and Whitelabeling (Cloud Only).
+2.  **The Operational Layer:** Handles the actual AI Agents, Logic, and Routing (Open Source Core).
 
-At its core, the platform separates **Administration** (User) from **Operation** (Business).
+## Ecosystem Map
+
+This diagram illustrates how the **Agency Owner** controls the platform and how **Customers** access their assigned workspaces.
 
 ```mermaid
 graph TD
-    User[Master User] -->|Owns| Billing[Billing & Credits]
-    User -->|Manages| WL[Whitelabel Settings]
-    User -->|Generates| API[Global API Keys]
+    %% Admin Layer
+    User[Master User / Agency Owner]
     
-    User -->|Creates| B1[Business A]
-    User -->|Creates| B2[Business B]
+    subgraph User_Dashboard [User Dashboard]
+        Billing[Billing & Usage]
+        API[Global API Keys]
+        BizMgr[Business Manager]
+        WL[Whitelabel System]
+    end
+
+    User --> Billing
+    User --> API
+    User --> BizMgr
+    User --> WL
+
+    %% Whitelabel Details
+    subgraph Agency_Config [Whitelabel Configuration]
+        direction TB
+        Plans[Subscription Plans]
+        Brand[Domains & Branding]
+        CustMgr[Customer Manager]
+    end
+
+    WL --> Plans
+    WL --> Brand
+    WL --> CustMgr
+
+    %% The Actors and Workspaces
+    Client((Whitelabel Customer))
     
     subgraph Workspace [Business Workspace]
+        direction TB
         B1 --> Agents
         B1 --> Scripts[Scripts & Logic]
         B1 --> Integrations[LLM/TTS Providers]
         B1 --> Numbers[Phone Numbers]
         B1 --> Campaigns
     end
+
+    %% Connections
+    CustMgr -.->|Onboards| Client
+    BizMgr -->|Creates| Workspace
     
+    Client -->|Logins via Custom Domain| Brand
+    Client -->|Manages with defined Permissons| Workspace
+
+    %% Styles
     style User fill:#000,stroke:#333,stroke-width:2px,color:#fff
+    style Client fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
+    style Workspace fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+    style WL fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
+    style Agency_Config fill:#5284f0,stroke:#f59e0b,stroke-width:2px,stroke-dasharray: 5 5,color:#000
     style B1 fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style B2 fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
 ```
 
 ## 1. The Master User
@@ -39,45 +78,55 @@ graph TD
 When you sign up for Iqra AI, you create a **User** account. This is the top-level entity responsible for the "financial" and "administrative" health of the account.
 
 <Cards>
-  <Card icon={<CreditCard />} title="Billing & Usage" href="/platform/billing">
-    Manage your credit balance, payment methods, and view aggregated usage costs across all your businesses.
-  </Card>
-  <Card icon={<Users />} title="Whitelabeling" href="/platform/whitelabel">
-    (SaaS Only) Configure custom domains, branding, and manage your own customers who access the platform under your brand.
-  </Card>
   <Card icon={<Building2 />} title="Business Management" href="/platform/businesses">
-    Create, delete, and manage multiple Businesses (Workspaces).
+    Create, delete, and manage multiple **Workspaces**. Each business is an isolated container for your agents and data.
+  </Card>
+  
+  <Card icon={<CreditCard />} title="Billing & Usage" href="/platform/billing">
+    **(Cloud Only)** Manage your credit balance, payment methods, and view aggregated usage costs across all your businesses.
+  </Card>
+  
+  <Card icon={<Users />} title="Whitelabeling" href="/platform/whitelabel">
+    **(Cloud Only)** The Agency Engine. Configure custom domains, branding, subscription plans, and manage your own customers.
   </Card>
 </Cards>
 
 ## 2. The Business (Workspace)
 **The Operational Level**
 
-A **Business** is an isolated container for your agents and data. You can think of it as a "Project" or "Workspace". All operational logic happens here.
-
-<Callout type="idea" title="Isolation">
-  Data does not leak between businesses. An Agent created in *Business A* cannot access the Phone Numbers or Scripts of *Business B*.
-</Callout>
-
-### Key Modules inside a Business:
+A **Business** is where the work happens. It is a strictly isolated container for your AI logic. An Agent in *Workspace A* cannot access a Phone Number or Knowledge Base in *Workspace B*.
 
 <Cards>
   <Card icon={<Bot />} title="Agents" href="/build/agent">
-    The "Persona". Defines the voice, personality, and interruption settings.
+    **The Persona.** Define the voice, personality, interruption handling, and language settings.
   </Card>
-  <Card icon={<GitFork />} title="Scripts" href="/build/script">
-    The "Logic". A graph-based flow that dictates how the conversation moves.
+  
+  <Card icon={<GitFork />} title="Scripts & Logic" href="/build/script">
+    **The Brain.** Use the Visual Builder to create conversation flows, **Action Flows**, and manage **Script Variables**.
   </Card>
-  <Card icon={<Phone />} title="Routing" href="/build/campaigns">
-    Connects phone numbers to agents and defines inbound/outbound behaviors.
+  
+  <Card icon={<Network />} title="Routing & Campaigns" href="/build/campaigns">
+    **The Connection.** Connect Agents to the world via **Telephony** (Inbound/Outbound) or **Web** (Real-time Socket).
+  </Card>
+  
+  <Card icon={<Blocks />} title="Tools & FlowApps" href="/build/tools">
+    **The Capabilities.** Connect your agent to external systems (CRMs, Calendars) using our plugin system.
+  </Card>
+  
+  <Card icon={<Database />} title="Data & Knowledge" href="/build/knowledge">
+    **The Memory.** Manage RAG Knowledge Bases, Semantic Caching, and Business Context.
   </Card>
 </Cards>
 
-## 3. The Agency Model (Whitelabeling)
+## 3. The Agency Model (Whitelabeling) *(Cloud Only Feature)*
 
-For Agencies, the hierarchy extends one step further. You can assign a **Business** to a **Customer**.
+For Agencies, the hierarchy extends one step further. You act as the **Platform Owner**.
 
-*   **You (The User):** Own the platform, set the prices, and manage the infrastructure.
-*   **Your Customer:** Logs into a custom domain (e.g., `agent.your-agency.com`) and sees only the **Business Dashboard** assigned to them. They do not see your global billing or other businesses.
+1.  **You (The Agency):** Own the Iqra account, pay for usage, and set the pricing plans.
+2.  **Your Customer:** Logs into *your* domain (e.g., `app.agency.com`). They only see the **Business Workspace** you have assigned to them.
+3.  **Plan (Limits):** You can define a subscription plan for your customer to limit their use of features.
+4.  **Permissions:** You can restrict what the customer sees (e.g., allow them to view Conversations but not edit Scripts).
 
-This architecture allows you to resell Iqra AI capabilities seamlessly while maintaining strict data boundaries.
+<Callout type="info" title="Learn More">
+  Deep dive into the Agency features in the [Whitelabeling Guide](/platform/whitelabel).
+</Callout>

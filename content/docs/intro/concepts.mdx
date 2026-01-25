@@ -1,72 +1,85 @@
 ---
 title: Core Concepts
-description: The fundamental philosophies and mechanics of Iqra AI.
+description: The fundamental vocabulary, building blocks, and mechanics of the Iqra AI platform.
 ---
 
-import { Bot, GitFork, Globe, Zap, Braces } from 'lucide-react';
+import { Bot, GitFork, Globe, Zap, Braces, Blocks, Variable, Shield, Wrench, MessageSquare, Database } from 'lucide-react';
 
-To build effective Voice AI agents on Iqra AI, it is important to understand the design choices we have made. We prioritize **control** and **determinism** over "magic," giving you predictable results in production environments.
+To build on Iqra AI, you need to understand the relationship between the "Persona" (Agent) and the "Logic" (Script), as well as the building blocks available to you.
 
 ## Agents vs. Scripts
 **Separating Personality from Logic**
 
-In many platforms, an "Agent" is a single entity containing the prompt, the voice, and the tools. In Iqra AI, we decouple these into two distinct entities:
+Iqra AI decouples the "Who" from the "What."
 
-1.  **The Agent (The Persona):** Defines *who* is speaking. This includes the Voice (TTS), the Personality Prompt ("You are a helpful assistant"), the Configuration (Silence detection, Interruptions), and the Context (Knowledge Base).
-2.  **The Script (The Logic):** Defines *what* happens. This is a graph-based flow that determines the conversation path, logic branches, and tool executions.
+1.  **The Agent (The Persona):** Defines the Voice, Tone, Language, and Interruption behavior.
+2.  **The Script (The Logic):** A visual graph that defines the capabilities, tools, and conversation flow.
 
-```mermaid
-graph LR
-    Script[Master Sales Script] -->|Used By| AgentA[English Agent 'Abdullah']
-    Script -->|Used By| AgentB[Arabic Agent 'Iqra']
-    
-    style Script fill:#000,stroke:#333,stroke-width:2px,color:#fff
-    style AgentA fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style AgentB fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-```
+*Benefit:* You can have one "Sales Script" used by 50 different Agents (with different voices/accents) simultaneously.
 
-**Why this matters:** You can build complex logic *once* in a Script, and then attach it to multiple Agents with different languages, voices, or personalities without rebuilding the flow.
+## Script Components
+
+The Script is more than just a conversation tree; it is a full orchestration map.
+
+<Cards>
+  <Card icon={<Variable />} title="Variables (State)" href="/build/script/variables">
+    **Memory.** Store data (e.g., `user_name`, `booking_count`) during the conversation.
+    *   **Visible:** Data the AI can see and use.
+    *   **Hidden:** Secure flags used for internal logic only.
+  </Card>
+  
+  <Card icon={<Blocks />} title="FlowApps (Plugins)" href="/build/script/flowapps">
+    **Integrations.** Pre-built connections to external apps (Cal.com, HubSpot). Unlike generic API nodes, these provide a rich UI with dynamic dropdowns and validation.
+  </Card>
+  
+  <Card icon={<GitFork />} title="Action Flows" href="/build/script/action-flows">
+    **Logic Engine.** A group of nodes that execute deterministic logic. When the AI enters an Action Flow, it follows a strict path (If/Else, Loops) until completion.
+  </Card>
+  
+  <Card icon={<Shield />} title="Secure Sessions" href="/build/script/secure-sessions">
+    **Security.** A "Clean Room" mode where the AI is muted. The system takes control to collect PII/PCI data (Credit Cards, SSNs) via DTMF/Voice, ensuring the LLM never sees the secrets.
+  </Card>
+
+  <Card icon={<Wrench />} title="System Capabilities" href="/build/script/nodes">
+    **Native Tools.** Built-in platform capabilities available in the graph:
+    *   **Telephony:** Get DTMF Input, Transfer Call, End Call.
+    *   **Messaging:** Send SMS.
+    *   **Context:** Retrieve Business Data (Products/Services).
+    *   **Control:** Change Language, Go To Node.
+  </Card>
+</Cards>
 
 ## Native Multi-Language
 **Localization over Translation**
 
-Iqra AI is a **Native Multi-Language** platform. We do not rely on real-time auto-translation layers, which often result in broken grammar, awkward pauses, or lost context.
+Iqra AI is built to be Polyglot. We do not rely on fragile real-time translation layers. You define specific prompts, responses, and logic for each language (e.g., English & Arabic) within the same agent.
 
-When you build an Agent or a Script, you define content for specific languages (e.g., English and Arabic).
-*   **Prompts:** You write a specific system prompt for English, and a specific system prompt for Arabic.
-*   **Nodes:** In the Script Builder, every "AI Response" node requires text for every enabled language.
-
-This ensures that your Arabic agent speaks natural, dialect-aware Arabic, while your English agent uses appropriate idioms, rather than both sounding like a machine translation.
-
-<Callout type="info" title="Language Switching">
-  Agents can switch languages dynamically during a call using the **Change Language** tool in the Script Builder.
+<Callout type="info" title="Visual Cue: The Language Icon">
+  <Globe className="w-4 h-4 inline-block mr-2" />
+  Whenever you see the **Globe/Language Icon** next to an input field (like "Prompt" or "AI Response"), it means you must provide content for **every language** enabled in your Business Settings.
+  
+  [Read more about Multi-Language Architecture](/build/agent/multi-language)
 </Callout>
 
 ## Latency & Regions
 **Mastering the Speed of Light**
 
-Voice AI is a race against time. A delay of more than 1 second feels unnatural. To achieve sub-500ms latency, physical distance matters.
+Voice AI requires sub-second responses. To achieve this, physical distance matters.
 
-Iqra AI allows you to select the **Processing Region** for your calls.
-
-### The Latency Triangle
-For the fastest response, you should align these three elements in the same geographical region:
-1.  **The Carrier/Number:** Where the call originates (e.g., US Phone Number).
-2.  **The Processing Server:** Where Iqra AI runs the logic (e.g., US East Server).
-3.  **The Integrations:** Where your LLM and TTS providers are hosted (e.g., OpenAI US Servers).
-
-If you buy a UK Phone Number but process the call in a US Server using an LLM hosted in Japan, the audio has to travel around the world three times for every single turn of conversation. Iqra AI gives you the controls to keep everything local.
+*   **Multi-Region Strategy:** You can route a EU Phone Number to be processed by our EU Servers using AI Providers hosted in the EU.
+*   **Edge Computing:** By processing the "Brain" close to the "User," we eliminate trans-continental lag.
 
 ## Templating (Scriban)
-**Dynamic Variables**
+**Dynamic Data Injection**
 
-To make your agents smart and dynamic, we use the **Scriban** templating engine. This allows you to inject variables from your CRM, the call metadata, or previous conversation steps into your Scripts and Prompts.
+We use the **Scriban** engine to inject variables into your prompts, SMS messages, and API payloads.
 
-You will see the Templating Icon <Braces className="w-4 h-4 inline-block" /> in fields that support this feature.
+*   **Syntax:** `{{ variable_name }}`
+*   **Example:** `Hello {{ contact.first_name }}, your code is {{ session.otp }}.`
 
-**Example Usage:**
-```liquid
-Hello {{ customer.name }}, I see your appointment is on {{ date.to_string appointment_date "dd MMM yyyy" }}.
-```
-
-This powerful syntax allows for logic, loops, and formatting directly within your prompts.
+<Callout type="tip" title="Visual Cue: The Braces">
+  <Braces className="w-4 h-4 inline-block mr-2" />
+  Look for the **Braces Icon** in input labels. This indicates that the field supports dynamic templating. Typing `{{` in these fields will trigger an autocomplete menu.
+  
+  [Read the Templating Guide](/build/script/templating)
+</Callout>

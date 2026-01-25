@@ -1,66 +1,84 @@
 ---
 title: Introduction
-description: The complete orchestration platform for building high-performance Voice AI Agents.
+description: The Dynamic AI-First Computing Engine. Bridging the gap between chaotic intelligence and systematic action.
 ---
+import { Cpu, Globe, Workflow, Layers, Zap, Code, Bot, MessageSquare, ArrowRight } from 'lucide-react';
+import { Banner } from 'fumadocs-ui/components/banner';
 
-import { Cpu, Globe, Share2, Layers, Zap, Code } from 'lucide-react';
+<img src="/images/intro-banner.png" alt="Iqra AI Platform" className="mt-0 mb-6 rounded-xl w-full border" />
 
 # What is Iqra AI?
 
-**Iqra AI** is a comprehensive, low-code platform designed to build, deploy, and manage Voice AI Agents. Created by [Badal Technologies](https://www.badal.om) in the Sultanate of Oman, it serves as the bridge between raw LLM intelligence and real-world telephony requirements.
+**Iqra AI** is an open-source orchestration platform designed to build, deploy, and manage intelligent Conversational Agents. Created by [Badal Technologies](https://www.badal.om) in the Sultanate of Oman, it serves as the operating system for the next generation of AI applications.
 
-Unlike simple wrappers that hide functionality behind a single prompt box, Iqra AI is an **Orchestration Engine**. We provide a visual interface for complex logic while exposing deep-level controls—allowing you to manage latency, interruption behavior, and conversation flow with precision.
+Unlike simple wrappers that treat AI as a chatbot, Iqra AI is a **Hybrid Computing Engine**. It allows you to harness the dynamic, human-like understanding of LLMs while enforcing the strict, deterministic reliability of code through our **Visual Script Builder** with **FlowApp** and **Action Flow** systems.
+
+We enable you to build "Superhuman Employees"—agents that can think dynamically to understand a customer, but act systematically to update your database, process payments, or book appointments without error.
 
 <Callout type="info" title="Open Source">
-  Iqra AI is open-source at heart! You can access the core engine on [GitHub](https://github.com/abdofallah/IqraAI).
+  Iqra AI is open-source at heart! The complete technical stack (Frontend, Backend, Proxy, Workers) is available on [GitHub](https://github.com/abdofallah/IqraAI).
 </Callout>
 
 ## Core Philosophies
 
-Iqra AI was built to solve specific challenges in the Voice AI space: **Latency**, **Localization**, and **Control**.
+We built Iqra AI to solve the "Enterprise AI Gap": balancing the need for creative intelligence with the requirement for data control and business logic.
 
 <Cards>
-  <Card icon={<Globe />} title="Native Multi-Language" href="/intro/concepts#multi-language">
-    Don't rely on auto-translation. Define specific prompts, logic, and integrations for each language (e.g., English & Arabic) within a single agent to ensure grammatical accuracy and cultural relevance.
+  <Card icon={<Workflow />} title="Hybrid Orchestration" href="/intro/philosophy">
+    **Probabilistic + Deterministic.** The AI handles the conversation flow, but **Action Flows** and **FlowApps** handle the business logic. This ensures your agent never "hallucinates" a bank transfer or a calendar booking.
+  </Card>
+
+  <Card icon={<MessageSquare />} title="Multi-Channel Native" href="/build/campaigns">
+    **Build once, deploy everywhere.** Orchestrate conversations across **Telephony** (PSTN/SIP), **Web** (Real-time WebRTC), and **Chat** interfaces using a single logic graph.
   </Card>
   
-  <Card icon={<Zap />} title="Multi-Region Latency" href="/intro/concepts#multi-region">
-    You control the physics. Select specific regions for your phone numbers and processing servers to ensure your TTS, STT, and LLM are physically close, minimizing delay.
+  <Card icon={<Zap />} title="Latency & Region Control" href="/intro/concepts#multi-region">
+    **Master the Speed of Light.** We provide deep infrastructure control, allowing you to route calls and process inference in specific geographic regions (Edge Computing) to achieve &lt;1s voice latency.
   </Card>
   
-  <Card icon={<Share2 />} title="Graph-Based Logic" href="/build/script">
-    Separate "Personality" from "Logic". Build complex flows using our Node Graph—handle user queries, execute tools, and branch logic visually.
-  </Card>
-  
-  <Card icon={<Layers />} title="Agency & Enterprise" href="/platform/whitelabel">
-    Built for scale. Features a robust Whitelabeling system, allowing agencies to rebrand the platform, manage customer billing, and create custom subscription plans.
+  <Card icon={<Globe />} title="Native Polyglot" href="/intro/concepts#multi-language">
+    **Localization over Translation.** Define specific prompts, logic, and integrations for each language (e.g., English & Arabic) to ensure cultural nuance and grammatical accuracy.
   </Card>
 </Cards>
 
 ## Editions
 
-Iqra AI is available in two forms depending on your needs.
+Iqra AI is available in two forms. We believe in transparency—you should own your infrastructure.
 
 ### Iqra Cloud (SaaS)
 The fully managed, production-ready platform hosted at [app.iqra.bot](https://app.iqra.bot).
-*   **Billing System:** Manage balance, subscriptions, and auto-refills.
-*   **Whitelabeling:** Create custom domains and plans for your clients.
-*   **Managed Infrastructure:** Zero setup, instant scaling.
+*   **Agency Management:** Built-in Whitelabeling, Customer Management, and Custom Domains.
+*   **Billing Engine:** Automated credit management, subscription plans, and payment gateways.
+*   **Managed Infrastructure:** Zero DevOps. We handle the Servers, GPUs, scaling, and upgrades.
 
-### Open Source
-The core technology available for self-hosting.
-*   **Full Engine:** Access to the Agent capabilities, Script builder, and Integrations.
-*   **Exclusions:** Does *not* include the multi-tenant Billing system or Whitelabeling management features.
+<a href="https://app.iqra.bot/register" target="_blank" className="">
+  <Banner
+    changeLayout={false}
+    variant="rainbow"
+  >
+    <span>Get Started with Cloud</span> <ArrowRight className="ml-2 h-4 w-4" />
+  </Banner>
+</a>
+
+
+### Open Source (Self-Hosted)
+The complete technology stack available for developers and enterprises with data sovereignty requirements.
+*   **The Full Engine:** Includes the **Frontend** (Dashboard), **Backend** (Audio/Logic Processor), **Proxy** (Telephony Gateway), and **Background Workers**.
+*   **Exclusions:** Does *not* include the Multi-Tenant SaaS Billing system or Whitelabel management tools.
+
+<Callout type="tip" title="For Developers">
+  Want to run Iqra on your own servers? Check out the [Self-Hosting Guide](/developers/self-hosting) or learn how to contribute new plugins in the [FlowApp Ecosystem](/developers/flowapp).
+</Callout>
 
 ## Getting Started
 
-Ready to build your first agent? We recommend understanding how the platform is structured first.
+Ready to build the future?
 
 <Cards>
   <Card icon={<Cpu />} title="Architecture" href="/intro/architecture">
-    Learn how Users, Businesses, and Workspaces interact.
+    Understand the distributed cluster: Frontend, Backend, Proxy, and Background services.
   </Card>
   <Card icon={<Code />} title="Quick Start" href="/intro/quick-start">
-    Jump straight into creating your first phone call.
+    Jump straight into the Visual Builder and launch your first agent.
   </Card>
 </Cards>

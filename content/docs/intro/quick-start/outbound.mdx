@@ -1,0 +1,94 @@
+---
+title: Make a Phone Call
+description: Connect a telephony carrier and launch your first outbound AI call.
+---
+
+import { Phone, Settings, Play, AlertTriangle } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Now that you have an [Agent and Script](/intro/quick-start), let's give it a voice on the telephone network.
+
+Iqra AI uses a **BYOC (Bring Your Own Carrier)** model. You connect your own Twilio, Telnyx, or SIP account. This gives you full control over your phone numbers and billing rates.
+
+## Prerequisites
+
+*   A **Twilio** or **Telnyx** account with a purchased phone number.
+*   **Account SID** and **Auth Token** (or API Key) from your carrier.
+
+---
+
+<Steps>
+<Step>
+### Connect Telephony Integration
+
+1.  Navigate to **Business Dashboard** → **Integrations**.
+2.  Click **Add Integration** → Select **Twilio** (or your preferred provider).
+3.  Enter your **Account SID** and **Auth Token**.
+4.  **Default Number:** (Optional) Select a number to use as default.
+5.  Click **Save**.
+
+<Callout type="info" title="Deep Dive">
+  Using a different carrier? Check our specific guides for **[Twilio](/integrations/telephony/twilio)**, **[Telnyx](/integrations/telephony/telnyx)**, or generic **[SIP Trunking](/integrations/telephony/sip-trunking)**.
+</Callout>
+</Step>
+
+<Step>
+### Add Phone Number & Region
+
+We need to register the number in Iqra AI to handle routing.
+
+1.  Go to the **Numbers Tab**.
+2.  Click **Add Number**.
+3.  **Provider:** Select the integration you just added.
+4.  **Number:** Enter the number in **E.164 format** (e.g., `+1234567890`).
+5.  **Route Server (Critical):** Select the region closest to where this number is based (e.g., `US-East` for a US number).
+
+<Callout type="info" title="Deep Dive">
+  Understanding latency is crucial. Read about our **[Multi-Region Architecture](/intro/concepts#latency-and-regions)** to optimize your voice delay.
+</Callout>
+</Step>
+
+<Step>
+### Create Outbound Campaign
+
+A "Campaign" links your Agent to a phone number strategy.
+
+1.  Go to **Routing** → **Outbound Campaigns**.
+2.  Click **Add Campaign**.
+3.  **Agent:** Select the "Iqra" agent you created.
+4.  **Script:** Select your script.
+5.  **Number Strategy:** Select your Twilio integration.
+6.  **Voicemail Detection:** Leave as default (Enabled) for now.
+7.  Save the Campaign.
+
+<Callout type="info" title="Deep Dive">
+  **[Outbound campaigns](/build/campaigns/outbound)** are powerful. Learn how to configure **[Voicemail Detection (AMD)](/build/campaigns/outbound#voicemail-detection)** and **[Retry Logic](/build/campaigns/outbound#retry-logic)** for busy signals.
+</Callout>
+</Step>
+
+<Step>
+### Launch the Call
+
+The moment of truth.
+
+1.  Click the **Make Calls** button (Top Right or Sidebar).
+2.  Select **Single Call**.
+3.  **Campaign:** Select the campaign you just created.
+4.  **To Number:** Enter your personal mobile number.
+5.  Click **Launch Call**.
+
+**What happens next?**
+1.  Your phone will ring.
+2.  When you pick up, the AI will detect your voice (or silence).
+3.  It will speak the greeting defined in your Agent: *"Hello! Thanks for calling Medina Dental..."*
+
+<Callout type="tip" title="Going Big?">
+  The **[Make Calls](/build/operations/manual-calls)** tool also supports **[Bulk CSV Uploads](/build/operations/manual-calls#bulk-calls-csv-upload)**. You can upload a spreadsheet of 10,000 leads, map columns to script variables (e.g. `{{ Name }}`), and launch a mass campaign instantly.
+</Callout>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+*   **Call Failed immediately?** Check the **Logs** tab. If the error is `Provider Error`, check your Twilio/Telnyx Geo-Permissions or credit balance.
+*   **Latency is high?** Check if your **Phone Number Region**, **Iqra Route Server**, and **AI Integrations (LLM/TTS)** are all in the same geographic region (e.g., all in US East).

@@ -1,0 +1,97 @@
+---
+title: Receive Phone Calls
+description: Configure inbound routing, IVR language selection, and handle customer calls.
+---
+
+import { PhoneIncoming, Webhook, Languages, AlertTriangle } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Now that you have an [Agent and Script](/intro/quick-start), let's set up a digital receptionist.
+
+**Inbound Routing** allows you to connect a phone number to an Agent. It also handles the initial handshake, such as asking the user for their preferred language ("Press 1 for English") before the AI takes over.
+
+## Prerequisites
+
+*   A **Twilio**, **Telnyx**, or **SIP** account with a purchased phone number.
+*   **Account SID** and **Auth Token** (or API Key).
+
+---
+
+<Steps>
+<Step>
+### Connect Telephony & Add Number
+
+If you haven't already connected your carrier:
+
+1.  Navigate to **Business Dashboard** → **Integrations**.
+2.  Add your **Twilio** or **Telnyx** integration.
+3.  Go to the **Numbers Tab** and click **Add Number**.
+4.  Enter your number in **E.164 format** (e.g., `+1234567890`) and select the **Route Server Region**.
+
+<Callout type="warn" title="Webhook Configuration">
+  For Inbound calls to work, your carrier must send the call to Iqra AI.
+  *   **Twilio/Telnyx:** We attempt to auto-configure the webhook when you save the number.
+  *   **SIP/Others:** You must manually copy the **Webhook URL** displayed in the Numbers list and paste it into your carrier's portal.
+</Callout>
+
+<Callout type="info" title="Deep Dive">
+  Trouble connecting? Read our detailed guide on **[Managing Phone Numbers](/build/campaigns/numbers)** and manual webhook setup.
+</Callout>
+</Step>
+
+<Step>
+### Create Inbound Route
+
+The "Route" is the logic that decides who picks up the phone.
+
+1.  Go to **Routing** → **Inbound Routing**.
+2.  Click **Add Route**.
+3.  **Number:** Select the phone number you added in Step 1.
+4.  **Agent:** Select your "Iqra" agent.
+5.  **Script:** Select your script.
+
+<Callout type="info" title="Deep Dive">
+  **[Inbound Routes](/build/campaigns/inbound)** are powerful. You can configure **[Webhooks & Actions](/build/campaigns/inbound#actions)** to trigger external tools (like a CRM update) immediately when the phone rings or when the call ends.
+</Callout>
+</Step>
+
+<Step>
+### Configure Language (IVR)
+
+Iqra AI features a built-in **Programmatic IVR**.
+
+*   **Single Language:** If you only enable "English", the Agent picks up immediately.
+*   **Multi-Language:** If you add "English" and "Arabic", the system automatically plays: *"Press 1 for English. Press 2 for Arabic."*
+
+For this test, stick to **Single Language** (English) for the fastest pickup time.
+</Step>
+
+<Step>
+### The Test
+
+1.  Pick up your personal phone.
+2.  Dial the business number you configured.
+3.  **Ring... Ring...**
+4.  The system should answer, and your Agent should speak the greeting: *"Hello! Thanks for calling..."*
+
+</Step>
+</Steps>
+
+## Real-time Monitoring
+
+While on the call, you can watch the "Brain" work in real-time.
+
+1.  Open the **Conversations Tab** in your dashboard.
+2.  You will see a row with status **Active**.
+3.  Click on it to see the live transcript as you speak.
+
+<Callout type="tip" title="Deep Dive">
+  Want to analyze the conversation after it ends? Check out **[History & Logs](/build/operations/history)** to listen to recordings and view debug traces.
+</Callout>
+
+## Troubleshooting
+
+*   **Busy Signal?** This usually means the **Webhook** failed.
+    *   Check your Twilio/Telnyx console. Ensure the "Voice URL" is pointing to `https://.../webhooks/twilio`.
+    *   Ensure you have credits in your Iqra AI account (if using Cloud).
+*   **Silence after pickup?** This is often a **Region Mismatch**. Ensure your Number, Route Server, and TTS Provider are in the same region (e.g., US-East).

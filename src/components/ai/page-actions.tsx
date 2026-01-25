@@ -62,30 +62,22 @@ export function PageActions({ markdownUrl, fullUrl = '/llms-full.txt' }: PageAct
     const Separator = () => <div className="h-4 w-0.5 bg-fd-border mx-1" />;
 
     return (
-        <div className="flex flex-col w-full border-b border-fd-border pb-4 mb-8">
+        <div className="flex flex-col w-full border-b border-fd-border pb-4 mt-2 mb-4">
             <div className="flex flex-wrap items-center gap-3">
 
-                {/* 1. Ask AI (Disabled for now) */}
-                <div className="group relative">
-                    <ActionButton icon={Sparkles} disabled>Ask a question</ActionButton>
-                    <span className="absolute -top-8 left-0 scale-0 transition-all rounded bg-fd-secondary px-2 py-1 text-[10px] group-hover:scale-100">Coming Soon</span>
-                </div>
-
-                <Separator />
-
-                {/* 2. Copy Page */}
+                {/* Copy Page */}
                 <ActionButton onClick={onCopy} icon={copied ? Check : Copy}>
                     {copied ? "Copied!" : "Copy page"}
                 </ActionButton>
 
                 <Separator />
 
-                {/* 3. View as Markdown */}
+                {/* View as Markdown */}
                 <ActionButton href={markdownUrl} icon={FileText}>View as Markdown</ActionButton>
 
                 <Separator />
 
-                {/* 4. More Actions Dropdown */}
+                {/* More Actions Dropdown */}
                 <div className="relative" ref={menuRef}>
                     <button
                         onClick={() => setIsOpen(!isOpen)}

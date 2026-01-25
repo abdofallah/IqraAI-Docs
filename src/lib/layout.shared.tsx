@@ -11,7 +11,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
         <>
           {/* Image for LIGHT MODE (Hidden in dark mode) */}
           <Image
-            src="/logo-dark.png"
+            src="/Logo-Light.svg"
             alt="Iqra AI"
             width={30}
             height={30}
@@ -21,7 +21,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
 
           {/* Image for DARK MODE (Hidden in light mode) */}
           <Image
-            src="/logo-colored-light.png"
+            src="/Logo-Dark.svg"
             alt="Iqra AI"
             width={30}
             height={30}

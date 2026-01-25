@@ -1,0 +1,149 @@
+---
+title: Web Agent
+description: Deploy a real-time, high-fidelity AI voice agent to your browser or app.
+---
+
+import { Globe, Code, Zap, Shield, Key } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Now that you have an [Agent and Script](/intro/quick-start), let's talk to it directly from your browser.
+
+**Web Campaigns** use WebRTC/WebSockets instead of phone lines. This results in **HD Voice** quality and **Zero Telephony Costs**.
+
+<Callout type="warn" title="Architecture Requirement">
+  You **can** connect a browser directly to the Iqra Platform, but it is a security risk. For this tutorial, we use our **.NET Middleware** to act as a secure bridge, ensuring your API keys are never exposed to the public internet.
+</Callout>
+
+---
+
+<Steps>
+<Step>
+### Create Web Campaign
+
+First, generate the campaign configuration.
+
+1.  Navigate to **Routing** → **Web Campaigns** in the Business Dashboard.
+2.  Click **Add Campaign**.
+3.  **Name:** "Website Demo".
+4.  **Agent:** Select your "Iqra" agent.
+5.  **Script:** Select your script.
+6.  **Save** the Campaign.
+
+<Callout type="info" title="Deep Dive">
+  Learn more about **[Web Campaign Configuration](/build/campaigns/web)**, including session timeouts and silence detection settings.
+</Callout>
+</Step>
+
+<Step>
+### Get Campaign ID
+
+Once saved, look for the **Campaign ID** in the list.
+*   Format: `camp_web_12345...`
+*   **Copy this string.** You will need it for the middleware configuration.
+</Step>
+
+<Step>
+### Generate API Key
+
+The middleware needs permission to talk to the Iqra AI Platform on your behalf.
+
+1.  Switch to the **User Dashboard** (click "Back to Dashboard" in the sidebar).
+2.  Go to the **API Keys** tab.
+3.  Click **Add API Key**.
+4.  **Name:** "Middleware Key".
+5.  **Scope:** You can restrict this key to *specific businesses* for security.
+6.  **Copy the Key** (starts with `iqra_sk_...`). You won't see it again.
+
+<Callout type="info" title="Deep Dive">
+  Security matters. Read our guide on **[API Key Scoping](/platform/api-keys)** to understand how to lock down access.
+</Callout>
+</Step>
+
+<Step>
+### Launch Middleware
+
+The middleware handles rate-limiting and authentication. For this quick start, we will run it locally.
+
+**Prerequisites:** [Docker](https://www.docker.com/) installed.
+
+Run the official image, pasting your **API Key** (Step 3) and **Campaign ID** (Step 2):
+
+```bash
+docker run -d -p 7157:80 \
+  -e VoiceAiPlatform__ApiSecretToken="PASTE_YOUR_API_KEY_HERE" \
+  -e VoiceAiPlatform__WebCampaignId="PASTE_YOUR_CAMPAIGN_ID_HERE" \
+  -e AllowedOrigins__0="http://localhost:3000" \
+  ghcr.io/abdofallah/iqra-middleware:latest
+```
+
+Your middleware is now running at `http://localhost:7157`.
+
+<Callout type="info" title="Deep Dive">
+  This is a simplified setup. For production, check the **[.NET Middleware Guide](/developers/sdks/middleware)** to configure Redis queues, IP blocking, and SSL.
+</Callout>
+</Step>
+
+<Step>
+### The Test (HTML Client)
+
+Now, create the client that talks to your local middleware.
+
+Create a file named `test.html` locally and paste the code below.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iqra AI Test</title>
+    <!-- 1. Load the SDK -->
+    <script src="https://cdn.iqra.bot/sdk/voice-ai-widget.umd.js"></script>
+</head>
+<body>
+    <h1>Web Agent Test</h1>
+    <button id="startBtn">Start Call</button>
+    <button id="stopBtn">End Call</button>
+
+    <script>
+        // 2. Initialize
+        // Point to your LOCAL Middleware
+        const client = VoiceAiWidget.init({
+            middlewareUrl: "http://localhost:7157", 
+        });
+
+        // 3. Listen to state changes
+        client.on('stateChange', ({ state, data }) => {
+            console.log('Current State:', state); 
+            if (state === 'QUEUED') {
+                alert(`System busy. You are #${data.queuePosition} in line.`);
+            }
+        });
+
+        // 4. Bind Buttons
+        document.getElementById('startBtn').onclick = () => {
+            client.startSession({
+                dynamicVariables: { name: "Guest" },
+                metadata: { source: "quick-start" }
+            });
+        };
+        document.getElementById('stopBtn').onclick = () => {
+            client.hangUp();
+        };
+    </script>
+</body>
+</html>
+```
+
+<Callout type="tip" title="Developer SDKs">
+  Building a React/Next.js app? Check out the full **[Web Widget SDK Documentation](/developers/sdks/web-widget)** for hooks and custom UI styling.
+</Callout>
+</Step>
+
+<Step>
+### Run & Talk
+
+1.  Open `test.html` in your browser.
+2.  Click **Start Call**.
+3.  Allow **Microphone Permissions**.
+4.  Speak to your agent!
+</Step>
+</Steps>

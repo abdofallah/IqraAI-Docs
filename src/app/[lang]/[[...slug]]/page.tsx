@@ -51,9 +51,10 @@ export default async function Page(props: {
                 {page.data.title}
             </DocsTitle>
 
+            <DocsDescription className='mb-0' dir={rightToLeftLanguages.includes(params.lang) ? 'rtl' : 'ltr'}>{page.data.description}</DocsDescription>
+
             <PageActions markdownUrl={markdownUrl} />
 
-            <DocsDescription dir={rightToLeftLanguages.includes(params.lang) ? 'rtl' : 'ltr'}>{page.data.description}</DocsDescription>
             <DocsBody dir={rightToLeftLanguages.includes(params.lang) ? 'rtl' : 'ltr'}>
                 <MDX components={getMDXComponents()} />
             </DocsBody>
