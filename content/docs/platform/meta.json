@@ -1,6 +1,13 @@
 {
     "title": "Platform Management",
     "icon": "LayoutDashboard",
-    "description": "User Dashboard, Billing, and Whitelabeling",
-    "root": true
+    "root": true,
+    "pages": [
+        "index",
+        "organization",
+        "billing",
+        "usage",
+        "api-keys",
+        "whitelabel"
+    ]
 }

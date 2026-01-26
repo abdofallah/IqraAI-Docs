@@ -3,22 +3,33 @@ title: API Keys
 description: Generating and managing secure access tokens for programmatic control.
 ---
 
-import { Key, ShieldCheck, Terminal, AlertTriangle } from 'lucide-react';
+import { Key, ShieldCheck, Terminal, AlertTriangle, Network } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
 Iqra AI provides a full REST API, allowing you to manage your businesses, trigger calls, and retrieve conversation history programmatically. **API Keys** are the credentials used to authenticate these requests.
 
-## Key Types & Scopes
+## Permission Scopes
 
-To ensure security, Iqra AI allows you to scope your API keys.
+To ensure security, Iqra AI allows granular control over what an API key can do. Access is defined by two dimensions: **Business Scope** (Where it can act) and **User Management** (What it can change).
+
+### 1. Business Scope
+Determines which workspaces the key can access.
 
 | Scope | Description | Best For |
 | :--- | :--- | :--- |
-| **Unrestricted (Master)** | Grants full access to **all** businesses owned by your user account. | account-level automation scripts. |
-| **Business Restricted** | Limits access to specific Business Workspaces only. | Production apps, client-side integrations, or team members. |
+| **Unrestricted** | Grants access to **all** businesses owned by your user account. | Global reporting scripts. |
+| **Restricted** | Limits access to specific Business Workspaces only. | Production apps, client-side integrations, or team members. |
+
+### 2. User Management Scope
+Determines if the key can access sensitive account-level data (Billing, Whitelabeling, User Profile).
+
+*   **Allow User Management Requests:** (Default: `Disabled`)
+    *   **Enabled:** The key can access `/api/v1/user` endpoints.
 
 <Callout type="warn" title="Security Best Practice">
-  Always use **Business Restricted** keys whenever possible. If a restricted key is compromised, it only puts that specific workspace at risk, not your entire account.
+  **Least Privilege Principle:** Always keep `User Management` **Disabled** unless you are specifically building a dashboard to manage billing or whitelabeling.
+  
+  For running agents or making calls, use a **Restricted Business Key** with **No User Management** access.
 </Callout>
 
 ## Managing API Keys
@@ -34,7 +45,8 @@ Click the **"Add API Key"** button.
 <Step>
 ### Configure Permissions
 1.  **Name:** Give it a descriptive name (e.g., "Zapier Integration - Dental Clinic").
-2.  **Scope:** Choose either "Unrestricted" or select specific Businesses from the dropdown.
+2.  **Business Scope:** Choose "Unrestricted" or select specific Businesses.
+3.  **User Management:** Toggle **User Management Access** only if necessary.
 </Step>
 
 <Step>
@@ -47,25 +59,25 @@ Click the **"Add API Key"** button.
 
 All API requests must be authenticated via the HTTP Header.
 
-### Endpoint
+### Endpoint & Reference
 The base URL for the API is:
 ```bash
 https://app.iqra.bot/api/v1
 ```
 
+<Callout type="tip" title="API Reference">
+  Want to see all available endpoints? Visit the interactive **[Developer API Reference](/developers/api)** to test requests directly in your browser.
+</Callout>
+
 ### Authentication Header
 Pass your key in the `Authorization` header using the `Token` prefix.
 
-```bash title="Example Request (cURL)"
-curl -X POST https://app.iqra.bot/api/v1/calls \
+```bash title="Example: Get User Profile"
+curl -X GET https://app.iqra.bot/api/v1/user \
   -H "Authorization: Token iqra_sk_12345abcdef" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "campaign_id": "camp_123",
-    "to_number": "+1234567890"
-  }'
+  -H "Content-Type: application/json"
 ```
 
 <Callout type="error" title="Keep it Secret">
-  Never expose your API Key in client-side code (browsers, mobile apps). Always make API requests from your backend server.
+  Never expose your API Key in client-side code (browsers, mobile apps). Always make API requests from your backend server or use our [Middleware](/developers/sdks/middleware).
 </Callout>

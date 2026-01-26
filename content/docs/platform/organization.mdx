@@ -4,25 +4,19 @@ description: Creating and managing isolated workspaces for your agents.
 ---
 
 import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { Briefcase, ShieldAlert, LayoutGrid } from 'lucide-react';
+import { Building2, AlertTriangle, ArrowRight, LayoutGrid } from 'lucide-react';
 
-In Iqra AI, a **Business** acts as a "Workspace" or "Project". It is a strictly isolated container for your Agents, Scripts, Phone Numbers, and Knowledge Bases.
+In Iqra AI, a **Business** acts as a "Workspace" or "Project Container."
+
+It is the fundamental unit of isolation. An Agent, Script, or Phone Number belongs to exactly **one** Business. This ensures that data, logs, and API keys never leak between different projects or clients.
 
 ## The Businesses Tab
 
-Upon logging in, you are presented with the **Businesses Tab**. This is your portfolio view.
+Upon logging in to the [User Dashboard](/platform), you land on the **Businesses Tab**. This is your portfolio view.
 
-*   **Card View:** Each business is represented as a card showing its name and logo.
-*   **Search:** Filter through your businesses (useful for agencies with 50+ clients).
-*   **Quick Actions:** Delete or Edit metadata directly from the card menu.
-
-<Callout type="warn" title="Data Isolation">
-  Resources are **not shared** between businesses.
-  *   An Agent created in *Business A* cannot access a Knowledge Base in *Business B*.
-  *   A Phone Number bought in *Business A* cannot be routed to a Script in *Business B*.
-  
-  This design ensures strict data privacy and security for agencies managing multiple clients.
-</Callout>
+*   **Card View:** Displays all workspaces you own or have access to.
+*   **Search:** Quickly filter businesses (optimized for agencies managing 100+ clients).
+*   **Metadata:** See at a glance the active plan or status of the workspace.
 
 ## Creating a Business
 
@@ -33,44 +27,39 @@ Located in the top right corner of the Businesses tab.
 </Step>
 
 <Step>
-### Business Details
-Enter the core details for the workspace:
+### Configure Identity
 *   **Name:** The display name (e.g., "Medina Dental Clinic").
-*   **Logo:** (Optional) Upload a brand icon. This is helpful for quick identification in the dashboard.
+*   **Logo:** (Optional but Recommended) Upload a brand icon.
 </Step>
 
 <Step>
 ### Confirmation
-Once created, the new business card will appear in your list.
+Once created, the new business card will appear in your list immediately.
 </Step>
 </Steps>
 
 ## Accessing the Workspace
 
-To start building agents, you need to enter the **Business Dashboard**.
+To start building, you must enter the **Business Context**.
 
-Simply **click on the Business Card**. This will redirect you from `app.iqra.bot/businesses` to `app.iqra.bot/business/{business_id}`.
+Simply **click on the Business Card**.
+*   **URL Change:** You will move from `/businesses` to `/business/{id}/overview`.
+*   **Sidebar Change:** The sidebar will switch from "Platform Management" (Billing, API Keys) to "Builder Tools" (Agents, Scripts, Routing).
 
-> You will notice the sidebar changes completely. You have now transitioned from the **User Context** (Admin) to the **Business Context** (Builder).
+<Callout type="tip" title="Where do I go next?">
+  Once inside a Business, you are ready to build. Check out the **[Build & Deploy](/build)** section to start creating:
+  *   **[Agents](/build/agent):** Define the persona.
+  *   **[Scripts](/build/script):** Build the logic graph.
+  *   **[Routing](/build/campaigns):** Connect phone numbers.
+</Callout>
 
 ## Deleting a Business
 
-You can delete a business from the card menu.
+You can delete a business from the card menu (`...` icon).
 
 <Callout type="error" title="Irreversible Action">
-  Deleting a business will **permanently destroy**:
-  *   All Agents and Scripts.
-  *   All Conversation History and Logs.
-  *   All uploaded Knowledge Base documents.
-  *   **Phone Numbers:** Any connected numbers may be released depending on the provider configuration.
+  Deleting a business is **destructive**. It will permanently remove:
+  *   All Agents, Scripts, and Flow configurations.
+  *   All Conversation History, Recordings, and Logs.
+  *   **Phone Numbers:** Connected numbers may be released or disconnected depending on the carrier integration.
 </Callout>
-
-## Use Cases
-
-When should you create a new Business?
-
-| Scenario | Recommendation |
-| :--- | :--- |
-| **Agencies** | Create one Business per **Client**. This allows you to hand over the specific workspace later if needed via Whitelabeling. |
-| **Enterprises** | Create one Business per **Department** (e.g., "Sales Dept", "Support Dept") to keep billing and analytics segmented. |
-| **Developers** | Create separate Businesses for **Staging** and **Production** environments. |

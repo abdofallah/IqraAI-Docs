@@ -1,41 +1,92 @@
 ---
 title: Platform Overview
-description: Manage your account, billing, organizations, and whitelabel settings.
+description: The administrative command center for managing workspaces, finance, and security.
 ---
 
-import { Building2, CreditCard, Key, Users, LayoutDashboard } from 'lucide-react';
+import { Building2, CreditCard, Key, Users, BarChart3 } from 'lucide-react';
 
-The **User Dashboard** is the command center for your Iqra AI account. Unlike the Business Dashboard (which focuses on building agents), this level handles **Administration**, **Finance**, and **Tenancy**.
+<img src="/images/platform-dashboard.jpg" alt="User Dashboard Overview" className="mt-0 mb-6 rounded-xl w-full border shadow-sm" />
 
-When you log in to [app.iqra.bot](https://app.iqra.bot), you land here.
+The **User Dashboard** is the top-level management layer of Iqra AI. It is designed for the **Account Owner** or **Agency Administrator**.
 
-## Dashboard Modules
+Unlike the **[Business Dashboard](/build)** (which is for building agents), this dashboard focuses on **Governance**:
+*   **Who** has access? (Tenancy & Whitelabeling)
+*   **How much** are we spending? (Finance)
+*   **How** is the system performing globally? (Analytics)
+
+## Core Modules
 
 <Cards>
   <Card icon={<Building2 />} title="Businesses" href="/platform/organization">
-    Create and manage your **Workspaces**. Each business is an isolated container for your agents and data.
+    **Workspaces.** Create isolated containers for your projects or clients. Each business has its own agents, numbers, and data.
   </Card>
-  
-  <Card icon={<CreditCard />} title="Billing & Usage" href="/platform/billing">
-    View real-time costs, manage payment methods, and configure **Auto-Refill** to keep your agents running.
+
+  <Card icon={<CreditCard />} title="Billing & Plans" href="/platform/billing">
+    **The Wallet.** Manage your credit balance, subscription plans, payment methods, and auto-refill settings.
+  </Card>
+
+  <Card icon={<BarChart3 />} title="Usage Analytics" href="/platform/usage">
+    **The Ledger.** View aggregated cost reports, filter usage by business or feature, and audit transaction history.
   </Card>
   
   <Card icon={<Key />} title="API Keys" href="/platform/api-keys">
-    Generate secure access tokens for the Iqra AI API. Scope them to specific businesses for better security.
+    **Access Control.** Generate secure tokens to control the platform programmatically. Support for Business-scoped keys.
   </Card>
   
   <Card icon={<Users />} title="Whitelabeling" href="/platform/whitelabel">
-    **For Agencies:** Rebrand the platform with your own domain, logo, and pricing plans for your customers.
+    **Agency Engine.** (Cloud Only) Rebrand the platform with your domain/logo and manage sub-customers.
   </Card>
 </Cards>
 
-## The Hierarchy
+## The Hierarchy Strategy
 
-It is important to remember that **no agents live here**. This dashboard manages the *containers* (Businesses) that hold the agents.
+Iqra AI uses a strictly hierarchical model to ensure data safety, easy billing management, and agency scalability.
 
-*   **User Level (Here):** "I need to pay for credits" or "I need to add a new client workspace."
-*   **Business Level:** "I need to change the voice of my agent" or "I need to check call logs."
+```mermaid
+graph TD
+    User[Master User / Agency Owner]
 
-<Callout type="info" title="Navigating">
-  To access the **Business Dashboard**, simply click on any card in the **Businesses** tab.
+    subgraph Global_Management [Global Management]
+        Billing[Billing Wallet]
+        Analytics[Global Analytics]
+        WL[Whitelabel System]
+        API[API Keys]
+    end
+
+    User --> Billing
+    User --> Analytics
+    User --> WL
+    User --> API
+
+    subgraph Workspaces [Business Workspaces]
+        Biz1[Business A]
+        Biz2[Business B]
+    end
+
+    User -->|Owns| Biz1
+    User -->|Owns| Biz2
+
+    %% API Scope Logic
+    API -.->|Restricted Scope| Biz1
+    API -.->|Unrestricted Access| Workspaces
+
+    %% Whitelabel Logic
+    WL -.->|Provisions| Client((End Customer))
+    Client -.->|Access| Biz1
+
+    style User fill:#000,stroke:#333,stroke-width:2px,color:#fff
+    style Biz1 fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
+    style Biz2 fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
+    style WL fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
+    style Client fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+```
+
+### Key Concepts
+
+*   **Global Billing:** You pay for *all* usage across your businesses from a single wallet. You do not need separate credit cards for every workspace.
+*   **Data Isolation:** While billing is shared, *data* is not. An API Key scoped to "Business A" cannot read the conversation logs of "Business B".
+*   **Whitelabeling (Agency Mode):** As a Master User, you can create "Customers." A Customer is a sub-user who can log in to a specific Business Workspace via your custom domain (e.g., `app.youragency.com`), seeing only what you permit.
+
+<Callout type="tip" title="Quick Navigation">
+  To start building agents, click on any card in the **Businesses** tab to enter the Workspace context.
 </Callout>

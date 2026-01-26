@@ -1,93 +1,124 @@
 ---
-title: Billing & Usage
-description: Managing credits, subscriptions, auto-refill, and usage history.
+title: Billing & Plans
+description: Managing subscriptions, credit balances, payment methods, and invoices.
 ---
 
-import { CreditCard, RefreshCw, History, TrendingUp, AlertTriangle } from 'lucide-react';
+import { CreditCard, RefreshCw, Receipt, AlertTriangle, TrendingUp, HelpCircle } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-Iqra AI operates on a **Hybrid Pricing Model**. This combines the stability of a monthly subscription with the flexibility of a pre-paid credit balance.
+Iqra AI operates on a **Hybrid Pricing Model** designed for flexibility. It combines the stability of a monthly subscription (for access and base limits) with the scalability of a pre-paid credit balance (for usage).
 
 ## The Credit System
 
-Your account functions like a digital wallet. You have a **Credit Balance** displayed in the Billing Overview.
+Think of your account as a digital wallet. You maintain a **Credit Balance** which is used to pay for consumption.
 
-*   **Top-ups:** You add funds to your balance via credit card.
-*   **Deductions:** Real-time costs (like phone calls or LLM token generation) are deducted from this balance as they happen.
+### Deduction Logic (Post-Call)
+Unlike prepaid phones that cut you off mid-sentence, Iqra AI prioritizes the customer experience.
+1.  **Usage Occurs:** A call is made, Conversation Minutes/Voicemail Detection/Etc are consumed.
+2.  **Calculation:** Once the session ends, the total cost is calculated based on your plan's unit price.
+3.  **Deduction:** The cost is deducted from your balance.
 
-<Callout type="error" title="Zero Balance">
-  If your credit balance drops to zero (or below the threshold), **active calls may be terminated** and new calls will fail. We highly recommend configuring [Auto-Refill](#auto-refill) to prevent this.
+<Callout type="warn" title="Negative Balances">
+  Because deductions happen *after* the activity finishes, it is possible for your balance to go **negative** (e.g., if a long call exceeds your remaining $1.00).
+  
+  Services will be paused immediately after a negative balance is detected until you top up to a positive balance.
 </Callout>
 
-## Feature Types
+## Subscription Components
 
-In the **Billing Overview**, you will see your features split into two categories. Understanding the difference is key to estimating costs.
+Your Plan consists of two distinct types of charges.
 
-### 1. Usage-Based Features (Consumables)
-These are features that you "consume" by the minute or unit. Your Subscription Plan usually includes a specific quota of these. Once the included quota is exhausted, overage costs are deducted from your Credit Balance.
+### 1. Recurring Features (Rentals)
+These are fixed monthly costs for assets you "hold".
+*   **Examples:** Phone Numbers, Whitelabel License, User Seats.
+*   **Billing:** Charged automatically to your default card on your monthly renewal date.
 
-| Feature | Description | Example Unit |
-| :--- | :--- | :--- |
-| **Call Minutes** | Duration of calls (Inbound/Outbound). | Per Minute |
-| **Concurrency** | How many calls can happen simultaneously. | Max Slots |
-| **Storage** | Size of uploaded Knowledge Base documents. | MB/GB |
+### 2. Usage-Based Features (Consumables)
+These are variable costs for activity (Minutes, Tokens, Storage).
+*   **Included Quota:** Most plans come with a "Free Allowance" (e.g., 500 Minutes). Usage is drawn from here first.
+*   **Pay-As-You-Go:** Once your included quota is exhausted, further usage is deducted from your **Credit Balance** at the unit price defined in your plan.
 
-### 2. Recurring Features (Rentals)
-These are fixed monthly costs for resources you "hold". These are charged automatically every month.
+---
 
-| Feature | Description | Billing Behavior |
-| :--- | :--- | :--- |
-| **Phone Numbers** | Rented numbers (e.g., Twilio/Telnyx). | Monthly deduction per number. |
-| **Whitelabeling** | The license to rebrand the platform. | Fixed monthly fee. |
-| **Seats/Users** | Additional team members. | Fixed monthly fee per user. |
+## Payment Methods
+
+We support major Credit and Debit cards (Visa, Mastercard, Amex).
+
+<Steps>
+<Step>
+### Add a New Card
+1.  Navigate to **Billing** -> **Payment Methods**.
+2.  Click **Add Payment Method**.
+3.  Enter your card details securely.
+</Step>
+
+<Step>
+### Verification Charge
+To ensure the card is valid, our payment processor initiates a small **Temporary Hold** (approx $1.00).
+*   **Note:** This is **not** a charge. It is immediately voided/refunded.
+</Step>
+
+<Step>
+### Set as Default
+If you have multiple cards, you must mark one as **Default**. This card will be used for:
+*   Monthly Subscription Renewals.
+*   Auto-Refill triggers.
+</Step>
+</Steps>
 
 ---
 
 ## Auto-Refill
 **Preventing Service Interruption**
 
-To ensure your agents never go offline due to insufficient funds, you can configure Auto-Refill. This triggers a payment automatically when your balance gets low.
+To ensure your agents never go offline due to a low balance, we highly recommend configuring **Auto-Refill**.
 
-<Steps>
-<Step>
-### Locate Configuration
-In the **Billing Tab**, scroll to the **Auto-Refill** card.
-</Step>
-
-<Step>
-### Set Thresholds
-You need to define two values:
-1.  **If Balance Falls Below:** The safety trigger (e.g., $20).
-2.  **Top Up Amount:** The amount to charge your card (e.g., $100).
-</Step>
-
-<Step>
-### Select Payment Method
-Choose which saved card to charge for these automatic transactions.
-</Step>
-</Steps>
+1.  Navigate to the **Billing Overview**.
+2.  Scroll to the **Auto-Refill** card.
+3.  **Threshold:** Set the trigger amount (e.g., *"If balance falls below $20"*).
+4.  **Top Up Amount:** Set the refill amount (e.g., *"Add $100"*).
+5.  Toggle the switch to **ON**.
 
 ---
 
-## Usage Analysis
+## Billing History & Invoices
 
-While the Billing tab handles money, the **Usage Tab** handles data. It provides granular transparency into where your money is going.
+The **Billing History** tab provides a comprehensive audit trail of all financial transactions.
 
-### Usage Overview
-A high-level dashboard showing cost trends over time.
-*   **Filter:** View by Date Range (Last 7 days, Month, Year).
-*   **Group By:** Segment data by Day, Month, or Business to see which Workspace is costing the most.
+*   **Statuses:**
+    *   `Paid`: Successful transaction.
+    *   `Failed`: Card declined or error.
+    *   `Checkout`: A payment session was started but not completed.
+*   **Invoices:** Click on any `Paid` transaction to view details and download an official **PDF Receipt** for your accounting.
 
-### Usage History
-The detailed ledger. Every single event that costs money is logged here.
-*   **Line Items:** Each call segment, each recurring charge deduction.
-*   **Detail:** Shows exactly how many minutes/units were consumed and the specific cost applied.
+---
 
-This is the source of truth for auditing your expenses.
+## Support & FAQs
 
-## Payment Methods
+<Accordions type="single">
+  <Accordion title="Why is the charge in OMR (Omani Rial)?">
+    Iqra AI is built by **Badal Technologies**, based in the Sultanate of Oman. Our banking infrastructure processes payments in the local currency.
+    
+    *   **Display:** All dashboard pricing is shown in **USD** for clarity.
+    *   **Processing:** The final charge is converted to OMR at a fixed, stable rate of **1 USD = 0.385 OMR**.
+    *   Your bank handles the conversion back to your local currency on your statement.
+  </Accordion>
 
-You can manage your credit cards in the **Payment Methods** section of the Billing tab.
+  <Accordion title="Do you support International Cards?">
+    **Yes.** We accept Credit and Debit cards from almost all countries globally via our secure payment gateway.
+  </Accordion>
 
-*   **Adding a Card:** A small temporary charge may be made to verify the card authenticity. This is refunded immediately.
-*   **Default Card:** One card must be selected as the default for Auto-refill and Subscription renewals.
+  <Accordion title="I see a charge but it was not credited?">
+    If you experienced a `Failed` transaction that appears on your bank statement, it is likely a "Pending Authorization" that will drop off within 3-5 business days. 
+    
+    If a `Paid` transaction is not reflected in your balance, please contact us immediately.
+  </Accordion>
+
+  <Accordion title="How do I get billing support?">
+    For refunds, disputes, or tax inquiries, please reach out to our finance team:
+    
+    *   **Email:** `billing@iqra.bot`
+    *   **Support:** Get in touch with our team members through one of our communication channel (Discord etc.)
+  </Accordion>
+</Accordions>
