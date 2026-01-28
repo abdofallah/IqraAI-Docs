@@ -1,0 +1,12 @@
+{
+    "title": "Script Builder",
+    "pages": [
+        "index",
+        "nodes",
+        "variables",
+        "flowapps",
+        "action-flows",
+        "secure-sessions",
+        "templating"
+    ]
+}

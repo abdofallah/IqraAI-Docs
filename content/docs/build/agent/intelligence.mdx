@@ -3,21 +3,17 @@ title: Intelligence
 description: Connecting LLMs, TTS, STT, and configuring Knowledge Base retrieval strategies.
 ---
 
-import { BrainCircuit, Mic, Speaker, Layers, Search, Sparkles, Bot } from 'lucide-react';
+import { BrainCircuit, Mic, Speaker, Layers, Search, Sparkles, Bot, Tag } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-The **Intelligence** tab is where you define the cognitive and sensory capabilities of your agent. You configure **Three Core Components** for every language your agent speaks:
-
-1.  **STT (Speech-to-Text):** The Ears.
-2.  **LLM (Large Language Model):** The Brain.
-3.  **TTS (Text-to-Speech):** The Mouth.
+The **Intelligence** tab is the control center for your agent's cognitive functions. Here you wire up the "Brain" (LLM), "Ears" (STT), and "Mouth" (TTS), and define exactly how the agent accesses its memory (RAG).
 
 ## Integration Configuration
 
-For each enabled language in your Business, you must assign specific providers. This allows you to optimize costs and quality per region (e.g., using **Deepgram** for English transcription but **Azure** for Arabic).
+Iqra AI is model-agnostic. For each language enabled in your Business, you must assign specific providers. This allows you to mix-and-match (e.g., Deepgram for English STT, Azure for Arabic STT).
 
 ### The Fallback System
-Iqra AI allows you to define a **Chain of Redundancy**. If your primary provider fails or times out, the system automatically switches to the next one in the list.
+We enforce reliability through redundancy. If your primary provider (e.g., OpenAI) goes down or times out, the system automatically fails over to the next provider in the list.
 
 ```mermaid
 graph LR
@@ -31,43 +27,61 @@ graph LR
     style Secondary fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-### Configuration Steps
-1.  **Select Provider:** Choose from your connected Integrations.
-2.  **Configure Model:** Select the specific model (e.g., `gpt-4o` vs `gpt-3.5-turbo`) and temperature.
-3.  **Voice Settings (TTS):** Select the specific voice ID, stability, and speed.
-
 ---
 
 ## Knowledge Base (RAG)
 
-Connect your agent to your proprietary data. You can link multiple **Knowledge Base Groups** to a single agent.
+Connecting a [Knowledge Base](/build/knowledge) is only step one. Step two is defining **Search Triggers**—the logic that decides *when* to look up information.
 
-### Search Triggers
-This determines *when* the agent looks up information. Using RAG on every turn increases latency and cost, so Iqra AI offers granular control.
+We offer two distinct architectural approaches: **Pre-Processing** (System-driven) and **Runtime** (Agent-driven).
+
+### Strategy A: Pre-Processing (Faster)
+The system performs the search *before* the Agent LLM receives the user's message. The retrieved context is injected into the prompt immediately.
 
 <Cards>
   <Card icon={<Layers />} title="Always Search">
-    **Brute Force.** Performs a vector search for *every single user query*. High context, high latency.
+    **Brute Force.** Performs a vector search for *every single user query*.
+    *   *Pros:* Maximum context.
+    *   *Cons:* High latency and embedding costs.
   </Card>
-  <Card icon={<Search />} title="Keyword Match">
-    **Deterministic.** Only searches if the user says specific words (e.g., "Price", "Refund", "Policy"). You define these keywords per language.
+  
+  <Card icon={<Tag />} title="KB Keywords Match">
+    **Auto-Tagging.** Searches only if the user mentions keywords extracted automatically from your uploaded documents.
+    *   *Pros:* Zero configuration.
+    *   *Cons:* Can miss semantic intent.
   </Card>
-  <Card icon={<BrainCircuit />} title="Smart Classifier (LLM)" href="#smart-classifier">
-    **Intelligent.** Uses a fast LLM to analyze the user's intent. If the intent requires external data, it triggers a search.
+
+  <Card icon={<Search />} title="Custom Keywords">
+    **Deterministic.** Searches only if the user says specific words you define (e.g., "Refund", "Policy").
+    *   *Pros:* Precise control.
+    *   *Cons:* High maintenance.
   </Card>
-  <Card icon={<Bot />} title="Script Only" href="/build/script">
-    **Manual.** The agent never searches automatically. You must explicitly use the **Retrieve Knowledge** node in the Script Builder.
+  
+  <Card icon={<BrainCircuit />} title="Smart Classifier">
+    **Intelligent.** Uses a small, fast LLM to analyze intent. "Does this query require external data?" -> If Yes, Search.
+    *   *Pros:* Best balance of speed and accuracy.
+    *   *Cons:* Slight latency overhead (~200ms).
   </Card>
 </Cards>
+
+### Strategy B: Runtime (Better UX)
+The Agent LLM receives the message first, then *decides* to use a tool to search.
+
+<Card icon={<Bot />} title="Script / Tool Only" href="/build/script">
+  **Agent-Driven.** The Agent has a "Retrieve Knowledge" tool.
+  *   *Flow:* User asks question > Agent says "Let me check that..." > Agent calls Tool > System searches > Agent answers.
+  *   *Pros:* **Best User Experience** (No dead air silence).
+  *   *Cons:* Can increase the context window of the base prompt
+</Card>
 
 ### AI Query Refinement
 Users rarely speak in perfect search queries.
 *   *User says:* "How much is it?"
-*   *Vector Search sees:* "How much is it?" (Low accuracy).
+*   *Vector Search sees:* "How much is it?" (Ambiguous > Poor Results).
 
-If you enable **AI Query Refinement**, an LLM rewrites the query before searching:
-*   *Refined Query:* "What is the pricing for the Dental Cleaning service?" (High accuracy).
+If you enable **AI Query Refinement**, an LLM rewrites the query based on conversation history before searching:
+*   *Refined Query:* "What is the pricing for the Dental Cleaning service mentioned previously?" (Specific > High Accuracy).
 
-<Callout type="info" title="Trade-off">
-  Query Refinement significantly improves retrieval accuracy but adds ~300ms to the response time.
+<Callout type="warn" title="Latency Impact">
+  Query Refinement significantly improves retrieval accuracy but adds ~300-500ms to the response time. Use only when necessary.
 </Callout>

@@ -6,20 +6,15 @@ description: Define subscription tiers, usage limits, and overage rates for your
 import { Calculator, CreditCard, BarChart4, AlertCircle } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-The **Plans** module allows you to define the economy of your whitelabeled platform. By creating Plans, you package Iqra AI's capabilities into subscription tiers (e.g., "Starter", "Professional", "Enterprise") that you can sell to your clients.
+The **Plans** module allows you to define the economy of your whitelabeled platform. By creating Plans, you package Iqra AI's capabilities into subscription tiers (e.g., "Starter", "Professional", "Enterprise") that you can assign to your clients.
 
 ## Plan Anatomy
 
 A Plan consists of three main components:
 
-1.  **Base Subscription:** The monthly fee for the plan itself (e.g., $49/month).
-2.  **Usage-Based Features:** Consumables like Call Minutes. You define how many are included and what the cost is if the user exceeds that limit.
-3.  **Recurring Features:** Rentals like Phone Numbers. You define the monthly cost per item.
-
-<Callout type="idea" title="Profit Margin">
-  **Your Cost vs. Your Price:**
-  You pay Iqra AI a base rate (e.g., $0.10/min). You can charge your customer a markup rate (e.g., $0.20/min) in these plans. The difference is your profit.
-</Callout>
+1.  **Base Subscription:** The fixed monthly fee for access (e.g., $49/month).
+2.  **Usage-Based Features:** Consumables like Call Minutes. You define how many are included in the base fee and the cost per unit if the user exceeds that limit.
+3.  **Recurring Features:** Fixed monthly add-ons, such as additional **Conversation Concurrency** slots.
 
 ## Creating a Plan
 
@@ -43,45 +38,50 @@ Navigate to **Whitelabel** -> **Plans** and click **Add Plan**.
 This is the most critical setting. You need to define the logic for voice usage.
 
 *   **Included Quantity:** How many minutes are "free" with the base subscription? (e.g., 100 minutes).
-*   **Unit Price:** (Optional) The cost calculation value for the included minutes.
+*   **Unit Price:** (Optional) The cost calculation value for the included minutes (internal tracking).
 *   **Overage Unit Price:** The cost per minute **after** the included 100 minutes are used up.
 
-**Example Strategy:**
-> You create a plan for **$50/month**.
-> *   **Included:** 500 Minutes.
-> *   **Overage:** $0.15 per minute.
->
-> If a customer uses 400 minutes, they pay $50.
-> If a customer uses 600 minutes, they pay $50 + (100 extra mins * $0.15) = $65.
+**Example Logic:**
+> If a plan includes 100 minutes and has an Overage Price of $0.20:
+> *   Usage: 80 mins $\to$ Cost: Base Fee only.
+> *   Usage: 150 mins $\to$ Cost: Base Fee + (50 mins * $0.20).
 </Step>
 
 <Step>
 ### Configure Recurring Features
-These are assets the customer holds, such as **Phone Numbers**.
+You can bill for capacity. Since you (the Agency) provide the infrastructure, you can charge for **Conversation Concurrency**.
 
-*   **Included Quantity:** How many numbers come free with the plan?
-*   **Unit Price:** The monthly rental cost for every additional number.
+*   **Included Quantity:** How many simultaneous calls allow in the base plan?
+*   **Unit Price:** The monthly rental cost for every *additional* concurrency slot the user wants to purchase.
 </Step>
 
 <Step>
-### Limits & Concurrency
-You can restrict the "horsepower" of the plan.
-*   **Concurrency:** The maximum number of simultaneous calls the customer can have active. High concurrency is usually reserved for Enterprise plans.
+### Hard Limits
+You can restrict the maximum "horsepower" of the plan to prevent abuse.
+*   **Max Concurrency:** The absolute maximum number of simultaneous calls this plan allows, regardless of add-ons.
 </Step>
 </Steps>
 
+## Payment Collection
+
+Currently, Iqra AI handles the **Calculation** of the bill, but the **Collection** of funds is managed by you externally.
+
+*   **Manual Process:** You collect payment from your client (via Stripe Invoice, Bank Transfer, etc.) based on the usage report we provide.
+*   **Credit Adjustment:** Once paid, you manually update the customer's balance in the [Customer Billing](/platform/whitelabel/customers#billing-management) section.
+
+<Callout type="info" title="Coming Soon: Automated Payments">
+  We are actively integrating with **Whop** and **Stripe Connect**. Soon, you will be able to process credit card payments for Plans directly inside the whitelabeled dashboard.
+</Callout>
+
 ## Assigning Plans
 
-Once a plan is created, it does not apply to anyone automatically. You must:
-1.  Go to the **Customers** tab.
+Creating a plan does not apply it to anyone automatically. You must assign it to a specific customer.
+
+1.  Navigate to the **Customers** tab.
 2.  Edit a specific Customer.
 3.  Go to their **Billing** section.
 4.  Select the **Plan** from the dropdown to apply it.
 
-## Best Practices
-
-| Strategy | Description |
-| :--- | :--- |
-| **The "Loss Leader"** | Offer a low monthly price but high overage rates. Good for getting small clients on board. |
-| **High Ticket** | High monthly price with massive "Included Minutes". Good for enterprise clients who want predictable billing. |
-| **Strict Limits** | Use the **Concurrency** limit to force heavy users to upgrade to a higher tier plan. |
+<Callout type="tip" title="Managing Customer Billing">
+  For a detailed guide on adjusting customer balances, handling subscriptions, and viewing their usage, refer to the **[Customer Management](/platform/whitelabel/customers)** guide.
+</Callout>

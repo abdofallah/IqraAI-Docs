@@ -3,81 +3,118 @@ title: Business Dashboard
 description: The operational workspace for building, deploying, and analyzing Voice AI agents.
 ---
 
-import { Bot, GitFork, Phone, Database, Hammer, BarChart3, Play } from 'lucide-react';
+import { Bot, GitFork, Phone, Database, Hammer, BarChart3, Play, History, Network, Blocks } from 'lucide-react';
 
-The **Business Dashboard** is where the magic happens. Unlike the User Dashboard (which manages billing and tenancy), this is your **Builder Workspace**. Every agent, script, and phone call belongs to a specific Business.
+The **Business Dashboard** is your engineering workshop. While the User Dashboard handles billing and tenancy, this is where you build the actual AI architecture.
 
-## The Builder Workflow
+Everything you create here—Agents, Scripts, Numbers—is strictly isolated to this specific **Workspace**.
 
-Building a Voice AI agent isn't linear, but it generally follows this architecture:
+## The Builder Architecture
+
+Building a "Superhuman Employee" involves assembling four distinct layers:
 
 ```mermaid
 graph LR
-    Data[1. Data & Context] --> Agent[2. Agent Persona]
-    Tools[Tools & Integrations] --> Script[3. Script Logic]
-    Agent --> Campaign[4. Routing & Campaigns]
-    Script --> Campaign
-    Campaign --> Call[5. Active Call]
-    Call --> Analysis[6. Post-Analysis]
+    subgraph Connections
+      Tools[Custom Tools]
+      Integrations[Integrations]
+      PhoneNumbers[Phone Numbers]
+    end
+
+    subgraph Capabilities
+        Context[Context]
+        Data[Knowledge Base]
+        Cache[Cache]
+    end
+
+    subgraph Intelligence
+        Agent[Agent Persona]
+        subgraph Script[Script Logic]
+          Nodes[Script Nodes]
+          FlowApp[FlowApps]
+        end    
+    end
+
+    subgraph Connectivity
+        Route[Routing & Campaigns]
+    end
+
+    subgraph Operations
+        Call[Live Conversation]
+        Analyze[Post-Analysis]
+        Analytics[History & Logs]
+    end
+
+    Tools --> Nodes
+    Integrations --> Agent
+    Integrations --> FlowApp
+    Integrations --> PhoneNumbers
+    PhoneNumbers --> Route
+    Data --> Agent
+    Context --> Agent
+    Agent --> Route
+    Script --> Route
+    Route --> Call
+    Cache --> Agent
+    Call --> Analyze
+    Call --> Analytics
     
     style Agent fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
     style Script fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style Campaign fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+    style Route fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-## Core Modules
+## Workspace Modules
 
-The dashboard is divided into logical sections to help you manage the complexity of Voice AI.
+We have organized the sidebar into logical groups to streamline your workflow.
 
-### 1. The Brains (Agent & Script)
-This is where you define *who* is speaking and *what* they do.
+### 1. Intelligence & Logic
+Define *who* speaks and *how* they think.
 
 <Cards>
   <Card icon={<Bot />} title="Agent Studio" href="/build/agent">
-    Define the personality, voice, interruption logic, and language settings.
+    **The Persona.** Configure the Voice, Personality, Interruption logic, and Language capabilities.
   </Card>
   <Card icon={<GitFork />} title="Script Builder" href="/build/script">
-    Build the conversation flow using a visual graph. Handle user queries, logic branches, and tool execution.
+    **The Brain.** Use the Visual Editor to design conversation flows, implement **Action Flows**, and manage state via **Variables**.
   </Card>
 </Cards>
 
-### 2. The Body (Routing)
-This is how your agent connects to the outside world (Telephony/Web).
+### 2. Capabilities & Memory
+Give your agent tools to interact with the world and data to answer questions.
 
 <Cards>
-  <Card icon={<Phone />} title="Campaigns & Routing" href="/build/campaigns">
-    **Inbound:** IVR logic and number assignment.
-    **Outbound:** Campaign configuration and voicemail detection.
+  <Card icon={<Blocks />} title="Tools & Integrations" href="/build/tools">
+    **Hands.** Connect **FlowApps** (Plugins like Cal.com) or build custom HTTP tools to perform actions.
+  </Card>
+  <Card icon={<Database />} title="Knowledge, Cache & Context" href="/build/knowledge">
+    **Memory.** Manage **RAG** (Documents), **Context** (Business Hours/Locations), and **Semantic Caching**.
   </Card>
 </Cards>
 
-### 3. The Knowledge (Data)
-Give your agent context about your business.
+### 3. Connectivity
+Connect your logic to the outside world.
 
 <Cards>
-  <Card icon={<Database />} title="Knowledge & Context" href="/build/knowledge">
-    **RAG:** Upload documents for the agent to search.
-    **Context:** Define static data like Branches, Services, and Branding.
+  <Card icon={<Network />} title="Routing & Campaigns" href="/build/campaigns">
+    **The Bridge.** Configure Inbound Routes, Outbound Campaigns, and Web/Socket Channels.
   </Card>
-  <Card icon={<Hammer />} title="Tools" href="/build/tools">
-    Create custom HTTP tools (APIs) for the agent to interact with your backend.
+  <Card icon={<Phone />} title="Phone Numbers" href="/build/campaigns/numbers">
+    **Infrastructure.** Manage BYOC (Twilio/Telnyx/SIP) numbers and assign them to specific **Latency Regions**.
   </Card>
 </Cards>
 
-### 4. The Results (Operations)
-Monitor performance and extract data.
+### 4. Operations
+Execute campaigns and analyze results.
 
 <Cards>
+  <Card icon={<Play />} title="Make Calls" href="/build/operations/manual-calls">
+    **Launchpad.** Trigger outbound calls immediately. Supports **Single Call** testing and **Bulk CSV** uploads for mass outreach.
+  </Card>
+  <Card icon={<History />} title="History & Logs" href="/build/operations/history">
+    **Observability.** Review recordings, read transcripts, and inspect deep-level debug traces for every conversation.
+  </Card>
   <Card icon={<BarChart3 />} title="Post Analysis" href="/build/operations/analysis">
-    Define schemas to extract structured JSON data and tags from every conversation.
-  </Card>
-  <Card icon={<Play />} title="Manual Actions" href="/build/operations/manual-calls">
-    Launch instant single calls or bulk CSV campaigns directly from the dashboard.
+    **Intelligence.** Define schemas to extract structured JSON data, generate summaries, and tag conversations automatically.
   </Card>
 </Cards>
-
-## Quick Actions
-
-At the top of the dashboard, you will find the **Make Calls** button. This is your testing ground.
-*   **Single Call:** Perfect for testing your new agent on your own phone number immediately.
-*   **Bulk Call:** Upload a CSV to trigger a blast campaign.

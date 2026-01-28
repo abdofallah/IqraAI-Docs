@@ -1,6 +1,14 @@
 {
     "title": "Build & Deploy",
     "icon": "Hammer",
-    "description": "Agent Studio, Script Builder, and Campaigns",
-    "root": true
+    "root": true,
+    "pages": [
+        "index",
+        "agent",
+        "script",
+        "knowledge",
+        "tools",
+        "campaigns",
+        "operations"
+    ]
 }

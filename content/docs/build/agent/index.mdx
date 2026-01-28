@@ -1,48 +1,49 @@
 ---
-title: Agent Persona
+title: Create Agent
 description: Defining the personality, context, and opening behavior of your Voice AI.
 ---
 
 import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { User, Library, Mic, Settings2 } from 'lucide-react';
+import { User, Library, Mic, Settings2, Sparkles, AlertTriangle } from 'lucide-react';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-The **Agent** represents the "Persona" of your Voice AI. While the Script handles the logic/flow, the Agent defines *who* is speaking, what they know about your brand, and how they behave tonally.
+The **Agent** represents the "Persona" of your Voice AI. While the Script handles the logic flow, the Agent defines *who* is speaking, what they know about your brand, and how they behave tonally.
 
 ## Creating an Agent
 
-Navigate to **Business Dashboard** -> **Agents** and click **Add Agent**. You will be presented with a tabbed interface to configure the persona.
+Navigate to **Agent Studio** -> **Agents** and click **Add Agent**.
 
 <Steps>
 <Step>
 ### General Information
-Give your agent an internal name (e.g., "Sarah - Sales") and a description. This helps you identify them when assigning them to campaigns later.
+Give your agent an internal name (e.g., "Iqra - Sales") and a description. This helps you identify them when assigning them to campaigns later.
 </Step>
 
 <Step>
 ### Context Injection
-Instead of manually typing your company address or pricing into every prompt, Iqra AI allows you to "Inject" context from your Business Data.
+Instead of manually typing your company address or pricing into every prompt, you can "Inject" structured data from your **[Business Context](/build/knowledge/context)**.
 
-Toggle the modules you want this agent to know about:
 *   **Branding:** Company name, website, support email.
 *   **Services/Products:** The list of items you sell (Name, Short Description).
 *   **Branches:** Locations and working hours.
 
-<Callout type="info" title="Optimization">
-  Only inject what is necessary. If an agent is for "Technical Support", they might not need to know the entire "Sales Product Catalog" in their system prompt.
+<Callout type="info" title="Token Optimization">
+  Only inject what is necessary. If an agent is for "Technical Support", do not inject the entire "Sales Product Catalog". This saves tokens and reduces hallucinations.
 </Callout>
 </Step>
 
 <Step>
-### Personality (System Prompt)
-This section constructs the dynamic System Prompt for the LLM.
+### Personality (The System Prompt)
+This is the most critical section. You are constructing the **System Prompt** that governs the LLM's behavior.
 
-*   **Name:** The name the agent will use to refer to itself (e.g., "Sarah").
-*   **Role:** The job title (e.g., "Senior Appointment Setter").
-*   **Capabilities:** Bullet points of what it can do (e.g., "Book meetings," "Answer FAQs").
-*   **Ethics:** Critical boundaries (e.g., "Never ask for credit card numbers," "Be polite but firm").
-*   **Tone:** The vibe of the conversation (e.g., "Professional," "Casual," "Empathetic").
+*   **Role:** Who is the agent? (e.g., "You are an official AI agent for Badal Technologies.")
+*   **Capabilities:** What can it do? (e.g., "You have access to the knowledge base system.")
+*   **Ethics:** The boundaries. (e.g., "You are a Muslim agent with the ethics of the Prophet (SAW)." or "You never ask for passwords.")
+*   **Tone:** The vibe. (e.g., "Treat the user with care and respect. Start responses with a polite greeting like 'Salam'.")
 
-> **Multi-Language Tip:** You must define these fields for **each language** enabled in your business. This ensures the Arabic agent has a culturally appropriate tone compared to the English agent.
+<Callout type="warn" title="Multi-Language Requirement">
+  You must define these fields for **every language** enabled in your business. This ensures your Arabic agent has the correct cultural nuance (e.g., using "Salam") compared to the English agent.
+</Callout>
 </Step>
 
 <Step>
@@ -50,15 +51,59 @@ This section constructs the dynamic System Prompt for the LLM.
 Define how the call starts.
 
 *   **Agent Speaks First:**
-    *   **Enabled:** The agent says the greeting immediately upon connection (Standard for Outbound).
-    *   **Disabled:** The agent waits for the user to say "Hello?" (Standard for Inbound).
-*   **Greeting Message:** The exact text the agent will speak first. You can use variables here like `Hi {{ name }}`.
+    *   **Enabled:** Standard for Outbound. The agent speaks immediately.
+    *   **Disabled:** Standard for Inbound. The agent waits for the user to say "Hello?".
+*   **Greeting Message:** The exact text spoken. Supports [Templating](/build/script/templating) (e.g., `Salam {{ name }}`).
 </Step>
 </Steps>
 
-## Advanced Configuration
+## Pro Tips: Prompt Engineering
 
-Once the Persona is defined, you need to configure the "Senses" (Hearing and Speaking) and the "Brain" (Knowledge).
+How to write instructions that actually work.
+
+<Accordions>
+  <Accordion title="Write Instructions, Not Adjectives">
+    **Bad:** `Tone: Polite`
+    
+    **Good:** `Tone: Treat the user with care and respect. Start responses with a polite greeting when appropriate (e.g., "Welcome to Badal Technologies", "Salam").`
+    
+    *Why:* LLMs follow instructions better than abstract keywords. Tell it *how* to be polite.
+  </Accordion>
+
+  <Accordion title="Define the Negative Space">
+    **Bad:** `Be helpful.`
+    
+    **Good:** `Ethics: Do not engage in vague, idle, or spam conversations. If someone forces you to, end the call.`
+    
+    *Why:* Defining what the agent *should not* do is as important as what it *should* do to prevent jailbreaks.
+  </Accordion>
+
+  <Accordion title="Give it an Identity">
+    **Bad:** `You are a bot.`
+    
+    **Good:** `Role: You are Iqra, an official AI agent for Badal Technologies Oman. Your role is to help the user while putting their needs first.`
+    
+    *Why:* Giving the agent a name and a specific employer helps ground its responses in a specific context.
+  </Accordion>
+</Accordions>
+
+## Environment (Background Audio)
+
+To make calls feel more natural and less "robotic," you can inject a continuous background audio loop.
+
+*   **Use Cases:**
+    *   **Call Center:** Subtle typing and murmuring sounds.
+    *   **Office:** HVAC hum and distant phone rings.
+    *   **Cafe:** Clinking cups (for casual agents).
+*   **Configuration:** Upload an MP3/WAV file. The platform handles the loop mixing automatically.
+
+<Callout type="tip" title="Psychological Effect">
+  Adding a low-volume background track significantly reduces the "Uncanny Valley" effect and makes users more forgiving of small latencies.
+</Callout>
+
+## Next Steps
+
+Once the Persona is defined, configure the "Senses" and "Brain".
 
 <Cards>
   <Card icon={<Mic />} title="Interruption Engine" href="/build/agent/interruption">

@@ -1,75 +1,81 @@
 ---
 title: Customer Management
-description: Onboarding and managing your clients within the whitelabel platform.
+description: Onboarding tenants, assigning workspaces, and acting as the billing administrator.
 ---
 
-import { Users, ShieldCheck, CreditCard, Key } from 'lucide-react';
+import { Users, ShieldCheck, CreditCard, Key, TrendingUp, RefreshCw } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-As an agency using Iqra AI's Whitelabeling, you can onboard and manage your own clients directly through the platform. Each **Customer** represents an end-user who will access their dedicated **Business Workspace**.
+As an Agency Owner, you control the keys to the kingdom. The **Customers** module allows you to create user accounts for your clients, granting them access to specific Business Workspaces under your brand.
 
 ## Customer Hierarchy
 
-Within the whitelabeling system, a customer is a distinct entity that:
-*   Logs in through your custom domain (e.g., `agent.yourcompany.com`).
-*   Accesses only the specific Business Workspaces assigned to them.
-*   Has their own billing and usage metrics managed by you.
-
-<Callout type="info" title="Customer Isolation">
-  Customers are isolated from each other and from your agency's master account. They only see what you grant them access to.
-</Callout>
-
-## Customer Management Table
-
-On the **Customers Tab** within Whitelabeling settings, you will find:
-*   **List of Customers:** Displays customer email, assigned businesses, and their current subscription status.
-*   **Quick Actions:** Buttons to Add New Customer, Edit Customer Details, or Delete a Customer account.
+In the whitelabel ecosystem:
+1.  **You (The Owner):** Manage the infrastructure and pay Iqra AI.
+2.  **The Customer (The Tenant):** Logs in via your custom domain (e.g., `app.youragency.com`). They perceive the platform as *yours*.
+3.  **Isolation:** Customers cannot see each other, nor can they see your master billing or other businesses.
 
 ## Onboarding a New Customer
 
-Follow these steps to grant a new client access to your whitelabeled Iqra AI platform.
-
 <Steps>
 <Step>
-### Add New Customer
-1.  Navigate to the **Whitelabel Tab** in your User Dashboard.
-2.  Go to the **Customers Tab**.
-3.  Click the **"Add Customer"** button.
+### Create Account
+1.  Navigate to **Whitelabel** -> **Customers**.
+2.  Click **Add Customer**.
+3.  **Credentials:** Enter their Email and a temporary Password.
 </Step>
 
 <Step>
-### Enter Customer Details
-1.  **Email:** The primary contact and login identifier for the customer.
-2.  **Password:** Set an initial password. The customer will be prompted to change this upon first login.
-3.  **Permissions:** (Future use) Define granular permissions if needed. For now, all customers have full access to their assigned businesses.
+### Assign Workspaces
+Select which **Business Workspaces** this customer can access.
+*   *Note:* A customer can be assigned multiple businesses (e.g., if they own a franchise with 3 branches).
 </Step>
 
 <Step>
-### Assign Businesses
-Select which of your created **Business Workspaces** this customer should have access to. A customer can be assigned multiple businesses.
-</Step>
-
-<Step>
-### Configure Billing
-1.  **Assign Plan:** Select a subscription plan you previously created (e.g., "Small Business Plan").
-2.  **Credit Balance:** Set an initial credit balance for the customer.
-3.  **Addons:** Assign any additional purchased services (e.g., extra call minutes).
-4.  **Auto-Refill:** Configure auto-refill settings for this customer's account.
-</Step>
-
-<Step>
-### Save Customer
-Click **"Create Customer"**. An invitation email will be sent to the customer, prompting them to set up their account and access your whitelabeled platform.
+### Assign Plan
+Select a [Subscription Plan](/platform/whitelabel/plans) to define their limits and rates.
 </Step>
 </Steps>
 
-## Managing Customer Billing
+---
 
-As the agency owner, you manage your customer's financial relationship with Iqra AI.
+## Billing Management (The "Bank" Role)
 
-*   **Subscription Status:** View if their monthly plan is active, pending, or expired.
-*   **Balance Adjustments:** Manually add or remove credits from a customer's account.
-*   **Plan Changes:** Upgrade or downgrade a customer's plan.
-*   **Add-ons:** Manage any additional services they have purchased.
+Since Iqra AI does not yet process credit card payments from *your* customers directly, you act as the Billing Administrator. You are responsible for collecting payment externally (e.g., Wire Transfer, Stripe Invoice) and then manually updating the platform to reflect that payment.
 
-You can access these controls by clicking "Edit Customer" and navigating to their dedicated Billing section.
+You access these controls by clicking **Edit** on a customer row and navigating to the **Billing** tab.
+
+### 1. Balance Management
+If a customer pays you $500 via bank transfer for usage credits:
+*   **Action:** Go to **Credit Balance** -> **Adjust**.
+*   **Operation:** Select "Add Credit".
+*   **Amount:** Enter `500`.
+*   **Result:** The customer now sees $500 in their dashboard and can make calls.
+
+### 2. Plan & Subscription Status
+You control the lifecycle of the subscription.
+*   **Active:** Customer has full access.
+*   **Past Due / Locked:** If an external invoice isn't paid, you can change the status to **Locked** to pause their services immediately.
+*   **Change Plan:** You can upgrade/downgrade their plan at any time.
+
+### 3. Usage Cycle Management
+Plans usually have "Included Minutes" (e.g., 500 mins/month).
+*   **Monitoring:** View exactly how many minutes/tokens they have consumed in the current cycle.
+*   **Manual Reset:** If you need to restart their billing cycle early (or fix an error), you can click **Reset Usage Cycle**. This clears their "Consumed" counter back to zero.
+
+### 4. Managing Add-ons
+If a customer needs more capacity than their plan allows (e.g., "I need 10 more concurrent calls for a campaign today"):
+*   **Action:** Go to **Recurring Features**.
+*   **Modify:** Manually increase the **Quantity** of "Conversation Concurrency".
+*   **Effect:** This increases the monthly recurring cost calculated by the system.
+
+<Callout type="info" title="Roadmap: Automated Payments">
+  We are actively integrating with **Whop** and **Stripe Connect**. Soon, you will be able to connect your own payment gateway, allowing customers to pay via credit card inside the dashboard, automating all balance top-ups and plan renewals.
+</Callout>
+
+## Analytics & Auditing
+
+Even though payments are manual, tracking is automated.
+
+*   **Customer Usage Report:** View a detailed breakdown of every cost generated by the customer based on the **Unit Prices** you defined in their Plan.
+*   **Profitability:** Compare the *Customer's Usage Cost* (what they "spent" based on your markup) vs. the *Actual Infrastructure Cost* (what you pay Iqra AI) to track your margins.

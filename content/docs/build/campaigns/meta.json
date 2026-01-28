@@ -1,0 +1,9 @@
+{
+    "title": "Routing & Campaigns",
+    "pages": [
+        "index",
+        "inbound",
+        "outbound",
+        "web"
+    ]
+}
