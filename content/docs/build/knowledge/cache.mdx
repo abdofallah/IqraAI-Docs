@@ -1,85 +1,98 @@
 ---
-title: Caching
-description: Reduce latency and API costs by caching LLM responses, Audio, and Vectors.
+title: Cache Management
+description: Managing cache groups, understanding configuration sensitivity, and pre-warming data.
 ---
 
-import { Zap, Database, Music, HardDrive, RefreshCw } from 'lucide-react';
+import { Database, Network, Sliders, Layers, Play, AlertTriangle, FileAudio, Zap } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-In Voice AI, milliseconds matter. Generating text via an LLM and then synthesizing audio via TTS takes time (and money).
+The **Cache Manager** allows you to inspect and manage the shared memory banks of your agents.
 
-Iqra AI uses a **Semantic Cache** system. This allows your agent to "remember" previous interactions. If a user asks a question the agent has answered before, it can pull the pre-calculated response and pre-generated audio instantly, bypassing the external AI providers entirely.
+Unlike simple key-value stores, Iqra AI's cache is **Configuration Aware**. This means a single Cache Group can hold multiple variations of the same phrase (e.g., different speeds or embedding models) without collision.
 
-## How Semantic Cache Works
+## The Cache Hierarchy
 
-Unlike standard caching (which looks for exact text matches), Semantic Caching uses vector embeddings to understand **Intent**.
-
-*   **Cache Entry:** User asks "What is your pricing?" $\to$ Agent replies "It is $50."
-*   **New User:** Asks "How much does it cost?"
-*   **Result:** The system recognizes these questions have the same meaning. It serves the cached "It is $50" response instantly.
+Understanding the data structure is key to debugging cache hits/misses.
 
 ```mermaid
-graph LR
-    User[User Input] --> Embed[Vectorize]
-    Embed --> Check{Similar to Cache?}
-    Check -->|Yes '&gt;90'| Hit[Return Cached Result]
-    Check -->|No| Miss[Call LLM/TTS API]
-    Miss -->|Auto-Save| Store[Update Cache]
+graph TD
+    Group[Cache Group: 'Sales Audio']
+    Query[Query: 'Welcome to Badal']
     
-    style Hit fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
-    style Miss fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
+    Group --> Query
+    
+    Query --> ConfigA[Config A: ElevenLabs / Speed 1.0]
+    Query --> ConfigB[Config B: ElevenLabs / Speed 1.5]
+    
+    ConfigA --> FileA[Audio File A.mp3]
+    ConfigB --> FileB[Audio File B.mp3]
+    
+    style FileA fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+    style FileB fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-## Cache Types
+*   **The Group:** The high-level bucket (e.g., "English Audio").
+*   **The Query:** The text to be spoken or embedded.
+*   **The Configuration:** The specific settings used (Provider, Voice ID, Speed, Temperature).
+*   **The Data:** The actual generated file or vector.
 
-You organize data into **Cache Groups**. You can attach these groups to specific Agents.
-
-<Cards>
-  <Card icon={<Database />} title="Message Cache">
-    Stores **LLM Responses**.
-    *   **Input:** User Query.
-    *   **Output:** Agent Text Response.
-    *   **Benefit:** Saves LLM tokens and generation time.
-  </Card>
-  <Card icon={<Music />} title="Audio Cache">
-    Stores **TTS Files**.
-    *   **Input:** Agent Text.
-    *   **Output:** MP3/WAV Audio File.
-    *   **Benefit:** Massive latency reduction. Saves TTS provider costs (e.g., ElevenLabs characters).
-  </Card>
-  <Card icon={<HardDrive />} title="Embedding Cache">
-    Stores **Vectors**.
-    *   **Input:** Text.
-    *   **Output:** Vector Array.
-    *   **Benefit:** Saves embedding model costs for RAG lookups.
-  </Card>
-</Cards>
-
-## Configuration
-
-### 1. Create Groups
-Navigate to **Business Dashboard** -> **Cache**. Create the specific groups you need (e.g., "Sales Audio Cache").
-
-### 2. Connect to Agent
-Navigate to **Agents** -> **[Select Agent]** -> **Cache Tab**.
-Select which groups the agent should read from and write to.
-
-### 3. Auto-Caching (Learning Mode)
-You can enable **Auto-Cache** in the Agent settings.
-*   **Enabled:** Every time the agent generates a *new* response or audio file during a live call, it saves it to the cache group.
-*   **Result:** The agent "learns" and becomes faster over time as it builds a library of common responses.
-
-<Callout type="warn" title="Audio Consistency">
-  Audio Cache is tied to the **Voice Configuration**. If you change the Agent's Voice ID or Speed, the old cached audio files will be invalid (they will sound different). You should clear or change the Audio Cache Group when changing voices.
+<Callout type="warn" title="Sensitivity">
+  If you change **any** parameter in your Agent's integration (e.g., changing Speed from `1.0` to `1.1`), the system will treat it as a **New Configuration**. It will **not** use the old cache entry; it will generate a new one.
 </Callout>
 
-## Manual Management
+---
 
-You can manually add entries to the cache to "Pre-warm" the agent.
+## Managing Groups
 
-1.  Open a **Message Cache Group**.
-2.  Click **Add Entry**.
-3.  **User Query:** "What are your hours?"
-4.  **Agent Response:** "We are open 9 to 5."
+Navigate to **Business Dashboard** -> **Cache**. You will see three sub-tabs for the different data types.
 
-Now, the very first user who asks this will get an instant response, without the LLM ever needing to think about it.
+### 1. Message Cache (Text)
+**Stores:** Static LLM Responses.
+*   **Structure:** Simple Key-Value pair.
+*   **Management:** You can manually add entries here (e.g., Query: "Who are you?", Response: "I am Iqra.").
+*   **Usage:** Best for FAQs where the answer never changes.
+
+### 2. Audio Cache (TTS)
+**Stores:** Generated Audio data/files.
+*   **Management:** You can view the list of queries. Clicking a query reveals the specific **Configurations** stored for it.
+*   **Preview:** <Play className="w-3 h-3 inline"/> Listen to the generated audio to ensure quality.
+*   **Pre-warming:** You can add a Query manually. The next time an Agent (with a specific config) requests this text, it will generate and save the audio.
+
+### 3. Embedding Cache (Vectors)
+**Stores:** Mathematical representations of text.
+*   **Management:** View cached queries.
+*   **Benefit:** Allows multiple agents using the same Embedding Model (e.g., `text-embedding-3`) to share the cost of vectorizing the Knowledge Base queries.
+
+---
+
+## Operations
+
+### Deleting Entries
+You can delete cache at three levels:
+1.  **Delete Group:** Wipes everything.
+2.  **Delete Query:** Removes "Welcome" and all its variations (Speed 1.0, 1.5, etc.).
+3.  **Delete Configuration:** Removes only the specific version (e.g., just the "Speed 1.5" version).
+
+### Setting Expiry (TTL)
+To manage storage costs, you can define a **Time-To-Live**.
+*   **Settings:** Defined at the Group level.
+*   **Logic:** If a specific cache entry is not accessed for `X` days, it is automatically purged.
+
+<Callout type="tip" title="Maintenance">
+  If you update your Agent's Voice ID, the old cache entries become "Dead Weight" (they will never be hit again). It is good practice to **Delete** the old Configuration entries or rely on TTL to clean them up.
+</Callout>
+
+---
+
+## Future Roadmap
+
+We are enhancing the cache engine to be more intelligent.
+
+<Cards>
+  <Card icon={<Layers />} title="Semantic Matching">
+    **Coming Soon.** Using vectors to match "Hi" with "Hello". This increases the "Hit Rate" of the cache significantly but requires careful threshold tuning.
+  </Card>
+  <Card icon={<Zap />} title="Context Awareness">
+    **Coming Soon.** The cache lookup will check the *previous turn/chunk* as well as the current one. This ensures that the emotion/tone of the cached audio matches the current flow of the conversation.
+  </Card>
+</Cards>

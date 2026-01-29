@@ -1,32 +1,36 @@
 ---
 title: Knowledge Base (RAG)
-description: Configuring vector databases, chunking strategies, and hybrid retrieval.
+description: Ingesting documents, configuring chunking strategies, and managing vector retrieval.
 ---
 
-import { Database, FileText, Split, Search, ArrowDownUp, BrainCircuit } from 'lucide-react';
+import { Database, FileText, Split, Search, Network, RefreshCw, Edit } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-The **Knowledge Base** allows your agent to "read" your proprietary documents. Iqra AI uses a **RAG (Retrieval Augmented Generation)** pipeline to find relevant information from uploaded files and feed it to the agent in real-time.
+The **Knowledge Base** is your agent's long-term memory. It allows the AI to "read" your proprietary documents (PDFs, Manuals, Policies) and answer questions based *only* on that data.
 
-## The RAG Pipeline
+Iqra AI uses a **RAG (Retrieval Augmented Generation)** pipeline. We do not retrain the model; we inject relevant information into the context window in real-time.
+
+## The Ingestion Pipeline
+
+It is important to understand how we treat your data. **We do not store your raw files.** Once uploaded, a document is converted into text, chunked, and embedded.
 
 ```mermaid
 graph LR
-    Doc[Document 'PDF/TXT'] --> Chunk[Chunking]
-    Chunk --> Embed[Embedding Model]
+    File[Upload File] --> Extract[Text Extraction]
+    Extract --> Chunk[Chunking Strategy]
+    Chunk --> Edit[User Review / Edit]
+    Edit --> Embed[Embedding Model]
     Embed --> Vector[Vector Database]
     
-    User[User Query] --> Search[Retrieval]
-    Vector --> Search
-    Search -->|Top Results| LLM[Agent Response]
-    
+    style Edit fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
     style Vector fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style Search fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
 ```
+
+---
 
 ## 1. Creating a Group
 
-Documents are organized into **Groups**. Settings are applied at the Group level.
+Documents are organized into **Groups** (e.g., "HR Policies", "Technical Manuals"). Retrieval settings are defined at the Group level.
 
 ### Chunking Strategies
 How should we split your documents?
@@ -34,73 +38,68 @@ How should we split your documents?
 <Cards>
   <Card icon={<Split />} title="General Chunking">
     Splits text linearly based on character count.
-    *   **Good for:** Simple text files, FAQs.
-    *   **Settings:** Max Chunk Length, Overlap.
+    *   **Best for:** Simple text files, FAQs.
+    *   **Settings:** Max Chunk Length (e.g., 500 chars), Overlap.
   </Card>
   <Card icon={<FileText />} title="Parent-Child Chunking">
-    **Advanced.** Splits documents into small "Child" chunks for search, but retrieves the larger "Parent" chunk for context.
-    *   **Good for:** Complex policy documents, manuals.
-    *   **Why:** Searching small text is accurate, but the AI needs the surrounding paragraphs to answer correctly.
+    **High Precision.** Splits documents into small "Child" chunks for precise searching, but retrieves the larger "Parent" chunk for context.
+    *   **Best for:** Complex documents where a single sentence loses meaning without its surrounding paragraph.
   </Card>
 </Cards>
 
-### Retrieval Settings
-How do we find the right chunk?
-
-*   **Vector Search:** Uses semantic meaning (embeddings). Matches concepts, not just words.
-*   **Full Text:** Standard keyword search. Matches exact words.
-*   **Hybrid Search (Recommended):** Combines Vector and Full Text scores. Best of both worlds.
-
-#### Reranking
-You can enable a **Rerank Model**.
-1.  System retrieves top 50 matches.
-2.  Reranker analyzes them deeply and sorts them by relevance.
-3.  System returns top 5 to the Agent.
-*   **Result:** Higher accuracy.
-*   **Cost:** Higher latency (~200ms added).
+### Retrieval Configuration
+*   **Vector Search:** Matches semantic meaning (concepts).
+*   **Full Text:** Matches exact keywords.
+*   **Hybrid Search (Recommended):** Combines both scores for best results.
+*   **Reranking:** Re-orders the top results using a high-precision model to ensure the most relevant chunk is first.
 
 ---
 
-## 2. Connecting to Agent
+## 2. Managing Documents
 
-Creating a Knowledge Base does not automatically give the agent access to it. You must link them in the **Agent Studio**.
-
-1.  Go to **Agents** -> **[Select Agent]** -> **Knowledge Base**.
-2.  Add the Knowledge Base Group.
-3.  **Configure Search Triggers:**
-
-| Trigger | Description | Latency Cost |
-| :--- | :--- | :--- |
-| **Always Search** | Searches the database for *every* user turn. | High |
-| **Keyword Match** | Searches only if user says specific words (e.g., "Policy", "Price"). | Low |
-| **Smart Classifier** | Uses a fast LLM to decide "Does this query require external data?". | Medium |
-| **Script Only** | Never searches automatically. You must use the **Retrieve Knowledge** node in the [Script Builder](/build/script). | None |
-
-### AI Query Refinement
-Sometimes users ask vague questions like *"How much?"*.
-If enabled, **Query Refinement** uses an LLM to rewrite this into *"How much does the Premium Plan cost?"* based on conversation history before searching the database. This vastly improves accuracy.
-
----
-
-## 3. Managing Documents
-
-Inside a Knowledge Base Group, you can manage the actual files.
+Once a group is created, you can upload and manage the data.
 
 <Steps>
 <Step>
-### Upload
-Supported formats: PDF, DOCX, TXT, MD.
+### Upload & Pre-processing
+Upload PDF, DOCX, TXT, or MD files. You can enable **Cleaning Rules** to automatically strip URLs, emails, or excessive whitespace during extraction.
 </Step>
 
 <Step>
-### Pre-processing
-You can choose to automatically strip URLs, Emails, or excessive whitespace during upload to clean the data.
-</Step>
-
-<Step>
-### Inspect & Edit
-After processing, click on a document to see its **Chunks**.
-You can **Manually Edit** the text of a chunk.
-*   *Use Case:* The PDF parsing messed up a table. You can go in and fix the text so the AI understands it better.
+### Chunk Management (Crucial)
+After processing, the file exists only as a **List of Text Chunks**.
+*   **Edit Chunks:** If the PDF parser messed up a table, you can click on the chunk and fix the text manually.
+*   **Add Chunks:** You can manually add a text block (e.g., a quick policy update) without uploading a file.
+*   **Delete Chunks:** Remove irrelevant footers or legal disclaimers that confuse the AI.
 </Step>
 </Steps>
+
+---
+
+## 3. Connecting to Agent
+
+Creating a database is useless if the Agent can't access it.
+
+You must link your Knowledge Base Group to an Agent in the **[Agent Studio](/build/agent/intelligence)**.
+
+<Callout type="info" title="Search Triggers">
+  Simply linking the KB doesn't mean the agent searches it every time. You must define a **Search Strategy** (e.g., *Always Search*, *Smart Classifier*, or *Script Tool*).
+  
+  Read the **[Agent Intelligence Guide](/build/agent/intelligence#knowledge-base)** to configure *when* the agent searches.
+</Callout>
+
+---
+
+## Roadmap: Future Capabilities
+
+We are actively expanding our Knowledge Engine.
+
+<Cards>
+  <Card icon={<RefreshCw />} title="Dynamic Data Sources">
+    **Live Sync.** Instead of manual uploads, connect to **Google Drive**, **Notion**, or a **Website URL**. The system will periodically re-crawl and re-index the data to keep the agent up to date automatically.
+  </Card>
+  
+  <Card icon={<Network />} title="GraphRAG">
+    **Knowledge Graph.** Moving beyond simple vectors. We plan to map relationships between entities (e.g., "Product A *is compatible with* Product B"). This allows the agent to answer complex reasoning questions that standard RAG fails at.
+  </Card>
+</Cards>

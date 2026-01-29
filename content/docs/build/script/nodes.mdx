@@ -1,104 +1,120 @@
 ---
 title: Node Reference
-description: A complete dictionary of the building blocks available in the Script Builder.
+description: A complete dictionary of the building blocks available in the Sidebar Palette.
 ---
 
-import { MessageSquare, Phone, Globe, Lock, Hammer, Book, ArrowRightCircle, Smartphone } from 'lucide-react';
+import { MessageSquare, Phone, Globe, Lock, Hammer, Book, ArrowRightCircle, Smartphone, GitFork, Variable, Webhook, Clock, Code, Filter, RefreshCw, Calendar, Send } from 'lucide-react';
 
-The Graph Editor provides a suite of nodes to handle conversation flow, telephony signals, and backend logic. Right-click on the canvas to access the node menu.
+The Script Builder provides a comprehensive suite of nodes to handle conversation flow, business logic, and integrations.
 
-## Conversation Nodes
+Nodes are organized by category in the **Sidebar Palette**.
 
+---
+
+## Conversation
 The core interaction loop between the human and the AI.
 
 ### User Query
 Defines an **Intent** or specific phrase the user might say.
 *   **Usage:** Connect this after a Start Node or AI Response.
 *   **Matching:** The LLM uses semantic matching. If you type "I want to buy," it will also match "I'm looking to purchase."
-*   **Multi-Language:** You must define the query text for every enabled language to ensure accurate intent detection across regions.
+*   **Multi-Language:** <Globe className="w-3 h-3 inline"/> You must define the query text for every enabled language.
 
 ### AI Response
 Defines what the Agent speaks.
-*   **Usage:** Connect this after a User Query or a Tool execution.
-*   **Content:** The text to be synthesized by TTS. Supports [Templating](/build/script/templating) (e.g., `Hello {{ name }}`).
-*   **Multi-Language:** Requires translated text for each language.
+*   **Content:** The text to be synthesized by TTS. Supports **[Templating](/build/script/templating)** (e.g., `Hello {{ name }}`).
+*   **Interruption:** You can toggle whether the user is allowed to interrupt this specific phrase.
+*   **Multi-Language:** <Globe className="w-3 h-3 inline"/> Requires translated text.
+
+### Keep Listening
+Forces the agent to keep the microphone open without speaking.
+*   **Use Case:** When you expect the user to continue talking after a brief pause, or when you want to simulate "Active Listening" silence.
 
 ---
 
-## Telephony Tools (DTMF)
+## Action Flow
+Deterministic logic containers. These nodes allow you to build strict business rules.
 
-Interact with the phone keypad.
+<Callout type="info" title="Deep Dive">
+  Action Flows are powerful sub-routines. Read the full **[Action Flows Guide](/build/script/action-flows)** to learn how to group nodes and enforce strict logic.
+</Callout>
 
-### Get DTMF Input
-Waits for the user to press keys on their dialpad.
-*   **Timeout:** How long to wait (in seconds) for input.
-*   **Max Length:** The expected number of digits (e.g., 4 for a PIN).
-*   **Terminators:** Require `*` or `#` to signal end of input.
-*   **Encryption:** If enabled, the actual digits are **redacted** from logs and the agent's context. The agent only receives the *length* of the input. Useful for collecting credit card numbers securely.
-
-### Press DTMF
-Simulates the agent pressing keys (e.g., dialing an extension).
-*   **Sequence:** The string of digits to press (e.g., `123#`).
+*   **Action Flow Group:** The container for the sub-routine.
+*   **Condition:** <Filter className="w-3 h-3 inline"/> If/Else logic branching (e.g., `If Balance > 0`).
+*   **Wait:** <Clock className="w-3 h-3 inline"/> Pauses execution for a set duration.
+*   **Run Code:** <Code className="w-3 h-3 inline"/> Execute a JavaScript sandbox to manipulate variables.
+*   **Go To Action:** Jump to another step within the Flow.
+*   **Return:** Exit the Flow and return control to the main graph.
 
 ---
 
-## System Tools
+## Logic
+State management and flow control.
 
-Internal platform actions.
+### Set Variable <Variable className="w-3 h-3 inline"/>
+Updates the value of a **[Script Variable](/build/script/variables)**.
+*   **Operation:** Set, Increment, Decrement.
+*   **Value:** Can be static (e.g., `true`) or dynamic (e.g., `{{ tool.result }}`).
 
-### End Call
-Terminates the connection.
-*   **Mode:**
-    *   *Speak & End:* Plays a final message before hanging up.
-    *   *Immediate:* Cuts the line instantly.
+### Get Numerical Input
+Requests specific keypad input (DTMF) from the user.
+*   **Settings:** Max digits, Timeout, Terminator (`#`).
+*   **Encryption:** If enabled, the value is **Redacted** from logs and the AI context. Useful for collecting IDs securely.
+
+### Transfer To Agent / Human
+*   **To Agent:** Handoff the call to another AI Persona (e.g., Transfer from "Sales Bot" to "Support Bot").
+*   **To Human:** SIP/PSTN forwarding to a live call center or phone number.
 
 ### Change Language
 Switches the entire agent configuration mid-call.
-*   **Target Language:** Select from your enabled business languages.
-*   **Effect:** Swaps the STT/TTS providers and the prompt context to the selected language immediately.
+*   **Effect:** Swaps STT/TTS providers and the prompt context to the selected language immediately.
+
+### Send Event <Send className="w-3 h-3 inline"/>
+Sends a JSON payload to the client via WebSocket.
+*   **Use Case:** Updating the UI on a website or app (e.g., `navigate_to_checkout`) during a **[Web Campaign](/build/campaigns/web)**.
+
+### Webhook <Webhook className="w-3 h-3 inline"/>
+Fires a "Fire-and-Forget" HTTP request to an external URL. Unlike Custom Tools, this does not wait for a response or return data to the AI.
+
+### Add Script
+Injects the logic of *another* script into the current conversation context (e.g., injecting a global "FAQ Script" into a "Sales Script").
+
+### Schedule Call <Calendar className="w-3 h-3 inline"/>
+Triggers an outbound call to be placed at a future time.
+
+### End Conversation
+Terminates the connection.
+*   **Mode:** Speak a final message (Goodbye) or hang up immediately.
+
+---
+
+## Telephony
+Network-level controls.
+
+### Press Keypad
+Simulates the agent pressing keys (e.g., dialing an extension `123#`).
+
+---
+
+## Integrations
+Connecting to the outside world.
+
+### FlowApps (Plugins)
+Pre-built, rich integrations for services like **Cal.com** plugin.
+*   **Dynamic UI:** These nodes render dropdowns and forms specific to the app.
+*   **Latency Masking:** Configure `Speaking Before Execution` to fill dead air while the API loads.
+
+<Callout type="tip" title="Learn More">
+  See how to use plugins in the **[FlowApps Guide](/build/script/flowapps)**.
+</Callout>
+
+### Custom Tool <Hammer className="w-3 h-3 inline"/>
+Executes a raw HTTP webhook defined in the **[Tools Module](/build/tools)**.
+*   **Use Case:** Connecting to your own internal API or a service that doesn't have a FlowApp yet.
+
+### Retrieve Knowledgebase <Book className="w-3 h-3 inline"/>
+Forces a manual **[RAG](/build/knowledge/rag)** lookup.
+*   **Result:** The retrieved document chunks are injected into the context for the next AI response.
 
 ### Send SMS
-Triggers a text message.
-*   **Recipient:** Defaults to the current caller, or can be a specific number.
-*   **Content:** The message body (supports templates).
-*   **Provider:** Uses the SMS integration configured in your Business.
-
----
-
-## Logic & Flow
-
-Tools to manage the graph structure.
-
-### Go To Node
-Jumps execution to another node in the graph without drawing a physical line.
-*   **Target:** Select a specific node ID from the list.
-*   **Use Case:** Cleaning up "spaghetti" wires or creating loops (e.g., returning to the Main Menu).
-
-### Add Script to Context
-Injects the logic of *another* script into the current conversation.
-*   **Use Case:** You have a master "FAQ Script." You can inject it into your "Sales Script" so the sales agent can also answer FAQs without you rebuilding those nodes.
-
----
-
-## Data & External
-
-### Retrieve Knowledge Base
-Forces a manual RAG lookup.
-*   **Query:** The search term. Can be static or a dynamic variable from a previous user query.
-*   **Result:** The retrieved context is injected into the prompt for the next AI Response.
-
-### Custom Tool
-Executes an HTTP webhook defined in the **Tools** module.
-*   **Selection:** Pick from your pre-defined tools (e.g., "Book Cal.com Meeting").
-*   **Inputs:** If the tool requires arguments (like `email` or `date`), the LLM will attempt to extract them from the conversation history automatically.
-
----
-
-## Coming Soon
-
-<Callout type="info" title="Roadmap">
-  We are actively developing the following nodes:
-  *   **Transfer to Agent:** Hand off the call to another AI persona.
-  *   **Transfer to Human:** SIP/PSTN forwarding to a live agent.
-  *   **App Tools:** Native integrations for Google Sheets, HubSpot, and Slack (no custom HTTP setup required).
-</Callout>
+Triggers a text message to the caller via your connected telephony provider.

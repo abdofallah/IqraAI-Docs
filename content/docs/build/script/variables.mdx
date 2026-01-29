@@ -1,0 +1,95 @@
+---
+title: Script Variables
+description: Managing state, memory, and security boundaries within your conversation flow.
+---
+
+import { Variable, Eye, EyeOff, Lock, Edit3, Calculator } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**Script Variables** allow your agent to remember information. They act as the "Short-term Memory" of the conversation.
+
+You can use variables to store:
+*   **User Input:** Name, Date of Birth, Appointment Time.
+*   **Logic Flags:** `is_eligible`, `has_paid`.
+*   **Counters:** `retry_attempts`.
+*   **API Results:** Booking IDs, Reference Numbers.
+
+## The Variable Manager
+
+Variables are defined globally for the script. You manage them via the **Variables Panel**, accessible from the **<Variable className="w-4 h-4 inline"/> Braces Icon** in the bottom-right floating controls of the builder.
+
+### Creating a Variable
+
+When creating a variable, you define its structure and its relationship with the AI.
+
+| Property | Description |
+| :--- | :--- |
+| **Key** | The unique identifier used in templating (e.g., `customer_name`). |
+| **Type** | `String`, `Number`, or `Boolean`. |
+| **Default Value** | The starting value when the call begins. |
+
+---
+
+## Security & AI Context
+
+This is a unique feature of Iqra AI. You control exactly what the AI Agent "knows" versus what the System "knows."
+
+<Cards>
+  <Card icon={<Eye />} title="Visible to Agent">
+    **Context Injection.**
+    *   **True:** The variable and its value are injected into the System Prompt. The LLM knows this information and can speak about it.
+    *   **False:** The variable is **Hidden**. The LLM is unaware it exists.
+    *   *Use Case:* Hide internal logic flags (e.g., `risk_score`) or sensitive tokens from the AI to prevent leaks.
+  </Card>
+  
+  <Card icon={<Edit3 />} title="Editable by Agent">
+    **Hallucination Control.**
+    *   **True:** The LLM is allowed to update this variable based on the conversation (e.g., extracting a name).
+    *   **False:** The variable is **Read-Only** to the AI. Only System Nodes (Set Variable, FlowApps) can change it.
+    *   *Use Case:* Prevent the AI from accidentally changing a `price` or `booking_id`.
+  </Card>
+
+  <Card icon={<Lock />} title="Redacted">
+    **Log Privacy.**
+    *   **True:** The value is masked (`****`) in the logs, transcripts, and debug traces.
+    *   *Use Case:* Storing collected Credit Card numbers or Passwords before sending them to a secure API.
+  </Card>
+</Cards>
+
+---
+
+## Modifying Variables
+
+There are three ways a variable changes value during a call.
+
+### 1. The "Set Variable" Node
+A deterministic logic node used to update state manually.
+*   **Operation:** Set, Increment, Decrement.
+*   **Value:** Can be static (e.g., `true`) or dynamic (e.g., `{{ flowapp.result_id }}`).
+
+### 2. AI Extraction
+If **Editable by Agent** is `True`, the LLM will attempt to fill the variable from the user's speech.
+*   *Example:* You have a variable `user_name`. If the user says "I am Ali," the AI updates the variable automatically.
+
+### 3. Tool Outputs
+**FlowApps** and **Custom Tools** can write their results directly into variables if configured in the output mapping.
+
+---
+
+## Example: Retry Logic
+
+Here is how to use a hidden variable to limit how many times an agent asks for input.
+
+1.  **Create Variable:**
+    *   Key: `retry_count`
+    *   Type: `Number`
+    *   Default: `0`
+    *   **Visible to Agent:** `False` (The AI doesn't need to know it's counting).
+2.  **Logic Flow:**
+    *   User says something unintelligible.
+    *   **Set Variable Node:** Increment `retry_count` by `1`.
+    *   **Condition Node:**
+        *   If `retry_count` < 3: Go to **AI Response** ("Can you repeat that?").
+        *   If `retry_count` >= 3: Go to **Transfer Call**.
+
+This creates a robust error-handling loop completely outside the AI's control.

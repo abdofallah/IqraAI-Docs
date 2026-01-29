@@ -1,78 +1,94 @@
 ---
-title: Manage Data
-description: Managing the structured and unstructured data that powers your agent's intelligence.
+title: Data & Knowledge
+description: Managing the persistent memory and performance layers of your AI infrastructure.
 ---
 
-import { Database, FileText, Store, Zap, TableProperties } from 'lucide-react';
+import { Database, FileText, Store, Zap, TableProperties, HardDrive, Music, MessageSquare } from 'lucide-react';
 
 An AI Agent is only as good as the information it has access to. In Iqra AI, we separate data into distinct categories to optimize for **Accuracy**, **Latency**, and **Token Usage**.
 
-Instead of dumping everything into a massive system prompt (which is expensive and slow), you structure your data into modules that the agent can "pull" from when needed.
+<Callout type="info" title="Global vs. Session Data">
+  This section covers **Global Data** (Facts about your business that rarely change). 
+  
+  If you are looking to store data specific to a *single phone call* (like the user's name or booking ID), use **[Script Variables](/build/script/variables)** instead.
+</Callout>
 
-## Data Types
+## Data Layers
 
 ### 1. Business Context (Structured)
-This is "Fact-based" data. It is highly structured and usually required for specific logic.
-*   **Branding:** Company Name, Website, Email.
-*   **Entities:** Lists of [Branches](/build/knowledge/context#branches), [Services](/build/knowledge/context#services), and [Products](/build/knowledge/context#products).
-
-**When to use:** When you have concrete lists (e.g., "What are your 3 locations?"). The agent can inject summaries into the prompt and search for details dynamically.
+**The Hard Facts.** Highly structured entities defined in the dashboard.
+*   **Examples:** Branch Locations, Opening Hours, Product Catalog.
+*   **Strategy:** "Summary Injection." The agent gets a list of product names in its prompt (low cost), but uses a tool to fetch the full specs only when asked (high detail).
 
 ### 2. Knowledge Base (Unstructured)
-This is "Document-based" data using RAG (Retrieval Augmented Generation).
-*   **Documents:** PDFs, Word Docs, Text files.
-*   **Pipeline:** Upload $\to$ Chunk $\to$ Embed $\to$ Search.
-
-**When to use:** For general information, FAQs, policy documents, or massive datasets (e.g., "What is your refund policy for X?").
+**The Library.** Documents ingested via a **RAG (Retrieval Augmented Generation)** pipeline.
+*   **Examples:** PDF Manuals, Policy Docs, FAQs.
+*   **Strategy:** "Vector Search." The system chunks your documents and retrieves only the relevant paragraphs based on the user's query.
 
 ### 3. Cache (Performance)
-This is "Historical" data used for speed.
-*   **Storage:** Saves generated Audio (TTS), Responses (LLM), and Vectors.
-
-**When to use:** To reduce latency and API costs for repetitive queries.
+**The Short-Term Memory.** Storing generated outputs to save time and money.
+*   **Examples:** TTS Audio files, LLM Responses, Vector Embeddings.
+*   **Strategy:** "Exact Match." If the system has seen this input before, it skips the AI generation entirely.
 
 ---
 
-## Modules
+## Workspace Modules
 
 <Cards>
   <Card icon={<Store />} title="Context Manager" href="/build/knowledge/context">
-    Define your Branding, Branches, Services, and Products. Configure what gets injected into the prompt vs. what is retrieved via tools.
+    **Structured Data.** Define your Branding, Branches, Services, and Products. Control the injection strategy (Prompt vs. Tool).
   </Card>
   
   <Card icon={<Database />} title="Knowledge Base (RAG)" href="/build/knowledge/rag">
-    Configure vector stores. Set up advanced chunking strategies (Parent-Child) and Hybrid Search retrieval settings.
+    **Unstructured Data.** Configure vector stores, advanced chunking (Parent-Child), and search triggers.
   </Card>
   
   <Card icon={<Zap />} title="Caching" href="/build/knowledge/cache">
-    Configure Semantic Caching groups for Audio, Messages, and Embeddings to lower latency.
+    **Performance.** Manage cache groups to reduce latency and API costs.
   </Card>
 </Cards>
 
 ## Data Flow Architecture
 
-Understanding how data reaches the agent:
+How data moves from storage to the agent's brain:
 
 ```mermaid
 graph TD
-    subgraph Storage
-        Ctx[Context 'Products/Branches']
-        KB[Knowledge Base 'Docs']
-        Cache[Semantic Cache]
+    subgraph "Persistent Storage"
+        Ctx["Context (Products/Branches)"]
+        KB["Knowledge Base (Docs)"]
+    end
+
+    subgraph "Cache Layer (Redis/S3)"
+        EmbedCache[Embedding Cache]
+        MsgCache[Message Cache]
+        AudioCache["Audio Cache (TTS)"]
     end
 
     subgraph "Agent Runtime"
         Prompt[System Prompt]
         Tool[Internal Tools]
         LLM[LLM Inference]
+        Speaker[Audio Output]
     end
 
+    %% Context Flow
     Ctx -->|Summary Injection| Prompt
-    Ctx -->|Full Detail Lookup| Tool
+    Ctx -->|Detailed Lookup| Tool
+
+    %% RAG Flow
     KB -->|Vector Search| Tool
-    Cache -->|Hit?| LLM
+    Tool -.->|Check| EmbedCache
+
+    %% Inference Flow
+    Prompt --> LLM
+    LLM -.->|Check| MsgCache
+    
+    %% Audio Flow
+    LLM -->|Text Stream| Speaker
+    Speaker -.->|Check| AudioCache
     
     style Ctx fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
     style KB fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style Cache fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+    style AudioCache fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
 ```

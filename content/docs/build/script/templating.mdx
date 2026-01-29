@@ -1,112 +1,119 @@
 ---
-title: Templating & Variables
-description: Using the Scriban engine to inject dynamic data, logic, and formatting into your agents.
+title: Templating (Scriban)
+description: Using the Scriban syntax to inject dynamic data, logic, and formatting.
 ---
 
-import { Braces, Code, Database, Calendar } from 'lucide-react';
+import { Braces, Code, Terminal, AlertTriangle, BookOpen, Sparkles } from 'lucide-react';
 
-Static scripts are limited. To build truly personalized experiences, Iqra AI integrates the **Scriban** templating engine. This allows you to inject variables, perform math, format dates, and execute logic directly within your nodes.
+Iqra AI uses the **[Scriban](https://github.com/scriban/scriban)** engine to make your agents dynamic. This allows you to inject variables, format dates, perform math, and execute logic directly within your text fields.
 
-You can use templating anywhere you see the **Variable Icon** <Braces className="w-4 h-4 inline-block" /> in the input label (e.g., AI Response text, Tool URLs, Greeting messages).
+You can use templating anywhere you see the **Braces Icon** <Braces className="w-4 h-4 inline-block" /> in the input label (e.g., AI Response text, SMS content, Tool configurations).
+
+## The Smart Editor
+
+We have integrated a **Monaco-based Editor** for all template fields.
+
+*   **Intellisense:** As you type `{{`, a dropdown menu will appear listing all available variables in the current context.
+*   **Validation:** The editor provides real-time syntax highlighting to catch errors (like unclosed braces) before you save.
+
+<Callout type="info" title="Validation">
+  While the frontend editor catches syntax errors, the final execution and validation happen on the backend during the call.
+</Callout>
+
+---
 
 ## Basic Syntax
 
 To inject a variable, wrap it in double curly braces:
 
 ```liquid
-Hello {{ name }}, how can I help you?
+Hello {{ variables.user_name }}, how can I help you?
 ```
 
-If the variable `name` is "Ahmed", the agent will say: *"Hello Ahmed, how can I help you?"*
+If `variables.user_name` is "Ahmed", the agent will say: *"Hello Ahmed, how can I help you?"*
 
-## Variable Sources
-
-Where does data come from? Here are the primary namespaces available during a call:
+### Accessing Data
+Data is organized into **Namespaces**. Here are the common sources available during a conversation:
 
 | Namespace | Variable | Description |
 | :--- | :--- | :--- |
-| **Metadata** | `{{ metadata.key }}` | Custom data passed when you triggered the call (via API or CSV upload). |
-| **Call Info** | `{{ call.from }}` | The caller's phone number. |
-| **Call Info** | `{{ call.to }}` | The number the caller dialed. |
+| **Variables** | `{{ variables.key }}` | State stored via [Script Variables](/build/script/variables) or Set Variable nodes. |
+| **Metadata** | `{{ metadata.key }}` | Data passed when launching the call (via API or CSV). |
+| **Call** | `{{ call.from }}` | The caller's phone number. |
+| **Call** | `{{ call.to }}` | The number dialed. |
 | **Agent** | `{{ agent.name }}` | The internal name of the agent. |
-| **Tools** | `{{ tool_id.response }}` | Data returned from a [Custom Tool](/build/tools) execution. |
 
-### Example: Using Metadata
-When launching a **Bulk Call** from a CSV, you might have a column named `balance`.
+---
 
-**CSV Row:**
-`phone,name,balance`
-`+123456789,John Doe,500`
+## Formatting & Filters
 
-**Script Node (AI Response):**
-```liquid
-Hi {{ metadata.name }}, this is a reminder that you have an outstanding balance of {{ metadata.balance }} dollars.
-```
-
-## Logic & Control Flow
-
-Scriban allows you to add logic *inside* your text. This is powerful for handling variations without creating complex graph branches.
-
-### If / Else
-Change the message based on data.
-
-```liquid
-{{ if metadata.is_vip }}
-  Welcome back to the Premium Support line, {{ metadata.name }}.
-{{ else }}
-  Thanks for calling Customer Support.
-{{ end }}
-```
-
-### Loops
-Iterate over lists (e.g., a list of appointments returned by a tool).
-
-```liquid
-I found the following available slots:
-{{ for slot in tool_1.available_slots }}
-  - {{ slot.time }}
-{{ end }}
-```
-
-## Built-in Functions
-
-Iqra AI exposes helper functions to format data for better TTS pronunciation.
+Raw data often sounds robotic. Use **Pipes** `|` to apply filters that format the output for natural speech.
 
 ### Date & Time
-Raw dates (ISO 8601) sound robotic when spoken. Use date functions to make them natural.
+*Raw ISO:* `2023-10-25T14:00:00` > *Spoken:* "Twenty twenty-three dash..." (Bad).
 
 ```liquid
-// Raw: "2023-10-25T14:00:00"
-// Spoken: "Twenty twenty-three dash ten dash twenty-five..." (Bad)
-
-// Formatted:
-{{ appointment_date | date.to_string "%A, %B %d at %I:%M %p" }}
-// Spoken: "Wednesday, October 25 at 02:00 PM" (Good)
+// Format: Wednesday, October 25 at 2 PM
+{{ variables.appt_date | date.to_string "%A, %B %d at %I:%M %p" }}
 ```
 
 ### String Manipulation
 
 ```liquid
-// Capitalize
-{{ name | string.capitalize }}
+// Capitalize the first letter
+{{ variables.name | string.capitalize }}
 
-// Fallback (if variable is empty)
-{{ name | default "Valued Customer" }}
+// Safety: Default value if variable is empty
+{{ variables.name | default "Valued Customer" }}
 ```
 
-<Callout type="tip" title="Safety First">
-  Always use the `default` filter for optional variables. This prevents the agent from saying "Hello blank" or crashing if a variable is missing.
+<Callout type="tip" title="Learn More">
+  Scriban is powerful. Check the official documentation for a full list of built-in functions:
+  *   [Scriban Language Primer](https://github.com/scriban/scriban/blob/master/doc/language.md)
+  *   [Built-in Functions List](https://github.com/scriban/scriban/blob/master/doc/builtins.md)
 </Callout>
 
-## Tool Chaining
+---
 
-One of the most powerful features is using the output of one tool as the input for another, or speaking the result.
+## Logic & Control Flow
 
-1.  **Tool A (GetCustomer):** Returns JSON `{ "id": 101, "status": "active" }`.
-2.  **Tool B (UpdateStatus):** Requires an ID.
-3.  **Input Configuration for Tool B:**
-    ```liquid
-    {{ tool_get_customer.response.id }}
-    ```
+You can add logic *inside* a text field. This is powerful for handling minor variations without creating complex branches in your graph.
 
-The system allows you to traverse complex JSON objects returned by APIs using standard dot notation.
+### Conditional Text (If/Else)
+Change the greeting based on a flag.
+
+```liquid
+{{ if metadata.is_vip }}
+  Welcome back to the Premium line, {{ metadata.name }}.
+{{ else }}
+  Thanks for calling Customer Support.
+{{ end }}
+```
+
+### Loops (For)
+Iterate over lists returned by FlowApps (e.g., available calendar slots).
+
+```liquid
+I found the following times:
+{{ for slot in variables.available_slots }}
+  - {{ slot.time }}
+{{ end }}
+```
+
+---
+
+## Best Practices
+
+### 1. Always use Defaults
+If a variable might be null (e.g., a CSV column that is sometimes empty), accessing it directly might cause an error or silence.
+
+**Bad:** `Hello {{ metadata.name }}`
+**Good:** `Hello {{ metadata.name | default "there" }}`
+
+### 2. Math Calculations
+You can perform math directly in the template.
+
+```liquid
+// Calculate remaining balance
+Your remaining credit is {{ metadata.limit - variables.current_spend }} dollars.
+```

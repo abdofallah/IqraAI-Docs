@@ -1,0 +1,92 @@
+---
+title: FlowApps (Plugins)
+description: Using pre-built, intelligent integrations for services like Cal.com and HubSpot.
+---
+
+import { Blocks, Zap, ListFilter, Mic, Variable, MousePointerClick } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+**FlowApps** are the plugin system of Iqra AI. They allow you to add complex capabilities—like booking a meeting, creating a CRM contact, or sending a Slack message—without writing a single line of API code.
+
+Unlike generic [Custom Tools](/build/tools/custom-tools), FlowApps provide a **Native UI Experience**.
+
+## Why use FlowApps?
+
+<Cards>
+  <Card icon={<ListFilter />} title="Dynamic Dropdowns">
+    **No more ID hunting.** Instead of asking for a "Calendar ID", the node connects to your account and shows a dropdown of your available calendars.
+  </Card>
+  <Card icon={<Zap />} title="Validated Inputs">
+    The node knows what is required (e.g., Email, Date). It validates your inputs before you save, preventing runtime errors.
+  </Card>
+  <Card icon={<Mic />} title="Latency Masking">
+    APIs take time. FlowApps allow the agent to speak a filler phrase ("Let me check that for you...") *while* the tool is executing, eliminating dead air.
+  </Card>
+</Cards>
+
+---
+
+## Configuring a FlowApp Node
+
+<Steps>
+<Step>
+### Add the Node
+Drag your desired app (e.g., **Cal.com**) from the **Integrations** category in the Sidebar Palette onto the canvas.
+</Step>
+
+<Step>
+### Select Action
+Click the node. In the configuration panel, select the **Action** you want to perform (e.g., "Book a Meeting").
+*   *Note:* The form below will change dynamically based on the action you choose.
+</Step>
+
+<Step>
+### Configure Inputs
+You will see a list of fields required by the API. For each field, you have two choices:
+
+**Option A: Static / Template (You define it)**
+You provide the value. It can be a hardcoded string or a [Script Variable](/build/script/variables).
+*   *Example:* `Email` -> `{{ variables.user_email }}`
+
+**Option B: AI Generated (Agent defines it)**
+You verify the checkbox **"AI Generated"**.
+*   The system will instruct the LLM to extract this information from the conversation history.
+*   *Example:* `Reason` -> The agent listens to the user and fills this field automatically.
+</Step>
+
+<Step>
+### Select Credentials
+If the app requires authentication (e.g., HubSpot), select the **Integration** account you connected in the [Integrations Tab](/build/tools/integrations).
+*   *Public Apps:* Some apps (like Weather) do not require an account.
+</Step>
+</Steps>
+
+---
+
+## Advanced Features
+
+### Smart Fetchers (Context Aware)
+Some dropdowns are "Smart." They depend on other fields.
+
+*   **Scenario:** You want to book a meeting.
+*   **Step 1:** Select **User** (Dropdown lists your team members).
+*   **Step 2:** Select **Event Type**.
+    *   *Magic:* The Event Type dropdown automatically updates to show only events belonging to the *selected User*.
+
+### Latency Masking (Speaking Before Execution)
+External APIs can be slow. A 2-second delay feels like an eternity in a voice conversation.
+
+Use the **Speaking Before Execution** field to mask this delay.
+*   **Text:** *"One moment, let me see what times are available..."*
+*   **Behavior:** The Agent starts speaking this text *immediately*. While speaking, the system executes the API call in the background. By the time the agent finishes speaking, the data is ready.
+
+<Callout type="warn" title="Multi-Language">
+  If you use Latency Masking, remember to provide the filler phrase for **every language** enabled in your business.
+</Callout>
+
+### Output Mapping
+When the FlowApp finishes, it returns data (e.g., `booking_id`, `status`).
+
+You can map these results to **Script Variables** to use them later in the flow.
+*   *Output:* `booking_id` -> *Map to Variable:* `my_booking_ref`
+*   *Usage:* In a later SMS node, use `Your ref is {{ variables.my_booking_ref }}`.
