@@ -1,0 +1,9 @@
+{
+    "title": "API Reference",
+    "icon": "Hammer",
+    "root": true,
+    "pages": [
+        "index",
+        "v1"
+    ]
+}

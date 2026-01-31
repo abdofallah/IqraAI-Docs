@@ -11,7 +11,7 @@ export const source = loader(
     docs: docs.toFumadocsSource(),
     openapi: await openapiSource(openapi, {
       per: 'custom',
-      baseDir: 'developers/api/v1',
+      baseDir: 'api-reference/v1',
       toPages(builder) {
         const items = builder.extract();
 

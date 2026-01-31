@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
+import { AIChat, AIChatPanel, AIChatTrigger } from '@/components/ai-chat';
 import { DocsLayout } from '@/components/layout/notebook';
-import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/search';
 import { rightToLeftLanguages } from '@/lib/i18n';
 import { baseOptions } from '@/lib/layout.shared';
 import { getPageTree } from '@/lib/source';
@@ -26,10 +26,10 @@ export default async function Layout({
         >
             {children}
 
-            <AISearch>
-                <AISearchPanel />
-                <AISearchTrigger />
-            </AISearch>
+            <AIChat>
+                <AIChatPanel />
+                <AIChatTrigger />
+            </AIChat>
         </DocsLayout>
     );
 }

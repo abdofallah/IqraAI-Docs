@@ -1,6 +1,7 @@
 import { defineI18nUI } from 'fumadocs-ui/i18n';
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import type { ReactNode } from 'react';
+import SearchDialog from '@/components/search';
 import { i18n, rightToLeftLanguages } from '@/lib/i18n';
 
 const { provider } = defineI18nUI(i18n, {
@@ -29,7 +30,7 @@ export default async function LanguageLayout({
     const { lang } = await params;
 
     return (
-        <RootProvider dir={rightToLeftLanguages.includes(lang) ? 'rtl' : 'ltr'} i18n={provider(lang)}>
+        <RootProvider dir={rightToLeftLanguages.includes(lang) ? 'rtl' : 'ltr'} i18n={provider(lang)} search={{ SearchDialog }}>
             {children}
         </RootProvider>
     );

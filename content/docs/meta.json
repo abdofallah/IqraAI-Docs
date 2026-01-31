@@ -5,6 +5,7 @@
         "platform",
         "build",
         "integrations",
-        "developers"
+        "developers",
+        "api-reference"
     ]
 }

@@ -4,7 +4,7 @@
     "root": true,
     "pages": [
         "index",
-        "multi-language.mdx",
+        "multi-language",
         "agent",
         "script",
         "knowledge",
