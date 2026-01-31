@@ -19,12 +19,12 @@ Before connecting, ensure you have:
 
 1.  **Log in** to your [Twilio Console](https://www.twilio.com/console).
 2.  **Account SID & Auth Token:** These are prominently displayed on the main **Dashboard** page. Copy both values.
-3.  **Phone Numbers:** Navigate to **Phone Numbers** $\to$ **Manage** $\to$ **Active Numbers**. Find the number you want to use with Iqra AI.
+3.  **Phone Numbers:** Navigate to **Phone Numbers** > **Manage** > **Active Numbers**. Find the number you want to use with Iqra AI.
 
 ## Connecting to Iqra AI
 
-1.  Navigate to **Business Dashboard** $\to$ **Integrations**.
-2.  Click **Add Integration** $\to$ **Twilio**.
+1.  Navigate to **Business Dashboard** > **Integrations**.
+2.  Click **Add Integration** > **Twilio**.
 3.  **Name:** Give your integration a recognizable name (e.g., "My Twilio Account").
 4.  **Account SID:** Paste your Twilio Account SID.
 5.  **Auth Token:** Paste your Twilio Auth Token.
@@ -47,11 +47,11 @@ When you save your Twilio integration, Iqra AI attempts to automatically configu
 If the automatic setup doesn't work, or if you prefer manual control:
 
 1.  **Find the Iqra AI Webhook URL:**
-    *   Go to **Business Dashboard** $\to$ **Numbers**.
+    *   Go to **Business Dashboard** > **Numbers**.
     *   Find your Twilio number in the list.
     *   Copy the **Voice Request URL** provided. It will look like: `https://<region-server>.iqra.bot/webhooks/twilio` (e.g., `https://eu-1.sip.iqra.bot/webhooks/twilio`).
 2.  **Configure Twilio:**
-    *   In your Twilio Console, navigate to **Phone Numbers** $\to$ **Manage** $\to$ **Active Numbers**.
+    *   In your Twilio Console, navigate to **Phone Numbers** > **Manage** > **Active Numbers**.
     *   Click on your specific phone number.
     *   Scroll down to the **Voice & Fax** section.
     *   For **"A CALL COMES IN"**, select **Webhook** and paste the Iqra AI Voice Request URL you copied.
@@ -60,5 +60,5 @@ If the automatic setup doesn't work, or if you prefer manual control:
     *   Click **Save**.
 
 <Callout type="warn" title="Geo-Permissions">
-  Ensure your Twilio account allows outbound calls to the countries you intend to dial. Check your Twilio Console under **Super Properties** $\to$ **Geo Permissions**.
+  Ensure your Twilio account allows outbound calls to the countries you intend to dial. Check your Twilio Console under **Super Properties** > **Geo Permissions**.
 </Callout>

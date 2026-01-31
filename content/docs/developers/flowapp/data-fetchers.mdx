@@ -96,7 +96,7 @@ public class GetHubSpotUsersFetcher : IFlowDataFetcher
 ## 3. Dependent Fetchers (Context Aware)
 
 Sometimes, a dropdown depends on the value of another field.
-*   *Example:* Select **Team** $\to$ Select **Event Type** (filtered by Team).
+*   *Example:* Select **Team** > Select **Event Type** (filtered by Team).
 
 ### Schema Definition
 Use `x-fetcher-dependent-on` to tell the frontend to re-fetch when specific fields change.
