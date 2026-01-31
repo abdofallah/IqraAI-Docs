@@ -1,72 +1,47 @@
 ---
-title: Integrations
-description: Connect third-party providers for AI models, voice synthesis, and telephony infrastructure.
+title: Integrations Library
+description: The directory of supported providers, configuration guides, and connection protocols.
 ---
 
-import { CloudCog, Phone, Cable, Mic, Speaker, Globe } from 'lucide-react';
+import { Blocks, Key, Cable, Phone, CloudCog, Database, Mic, Speaker, ArrowRight } from 'lucide-react';
 
-Iqra AI is designed as an **Orchestration Layer**. We do not build the LLMs or the Telephone networks; we connect them. This **Bring Your Own Key (BYOK)** approach allows you to negotiate your own rates directly with providers like Azure or Twilio and maintain full control over your infrastructure.
+Iqra AI follows a **Bring Your Own Key (BYOK)** philosophy. We provide the orchestration engine; you provide the infrastructure credentials. This ensures you maintain full control over your data privacy, billing rates, and model choices.
 
-To use any of these integrations, you will need to create an account with the provider and obtain an **API Key** or **Credentials**.
+## The Integration Workflow
 
-## AI & Intelligence (LLM)
-The "Brain" of your agent.
+1.  **Connect (Providers):** Add your API credentials (e.g., OpenAI API Key, Twilio Auth Token) to your workspace.
+2.  **Configure (Capabilities):** Map those credentials to specific functions (e.g., Use `GPT-4` for the Agent Brain, use `ElevenLabs` for the Voice).
+
+## Documentation Structure
 
 <Cards>
-  <Card icon={<CloudCog />} title="Azure OpenAI" href="/integrations/providers/azure">
-    Enterprise-grade security and reliability. Supports GPT-3.5 and GPT-4 models.
-  </Card>
-  <Card icon={<CloudCog />} title="OpenAI" href="/integrations/providers/openai">
-    The standard for LLMs. Easy setup and access to the latest GPT models.
-  </Card>
-  <Card icon={<CloudCog />} title="Google Vertex AI" href="/integrations/providers/google">
-    Access Gemini Pro and Flash models for high-speed inference.
-  </Card>
-  <Card icon={<CloudCog />} title="Anthropic" href="/integrations/providers/anthropic">
-    Claude models, known for high-quality reasoning and large context windows.
-  </Card>
-  <Card icon={<CloudCog />} title="Groq" href="/integrations/providers/groq">
-    Ultra-low latency inference using LPU technology.
+  <Card icon={<Key />} title="Providers & Accounts" href="/integrations/providers">
+    **Start Here.** Guides on how to create accounts and retrieve API keys from third-party services like Azure, Google, and Twilio.
   </Card>
 </Cards>
 
-## Voice Services (TTS & STT)
-The "Mouth" and "Ears" of your agent.
+### Capabilities
 
 <Cards>
-  <Card icon={<Speaker />} title="ElevenLabs" href="/integrations/providers/elevenlabs">
-    Industry-leading Text-to-Speech (TTS) with ultra-realistic AI voices.
+  <Card icon={<CloudCog />} title="LLM (The Brain)" href="/integrations/llm">
+    Large Language Models for reasoning and conversation generation.
   </Card>
-  <Card icon={<Mic />} title="Deepgram" href="/integrations/providers/deepgram">
-    The fastest Speech-to-Text (STT) provider, optimized for real-time conversation.
+  <Card icon={<Speaker />} title="TTS (The Voice)" href="/integrations/tts">
+    Text-to-Speech engines for human-like audio synthesis.
   </Card>
-  <Card icon={<Cable />} title="Azure Speech" href="/integrations/providers/azure">
-    Robust TTS and STT services with broad language support.
+  <Card icon={<Mic />} title="STT (The Ears)" href="/integrations/stt">
+    Speech-to-Text engines for transcribing user audio.
   </Card>
-</Cards>
-
-## Telephony Carriers
-The "Network" for your calls.
-
-<Cards>
-  <Card icon={<Phone />} title="Twilio" href="/integrations/telephony/twilio">
-    The most popular cloud communications platform. Easy number provisioning.
+  <Card icon={<Phone />} title="Telephony (The Network)" href="/integrations/telephony">
+    Carriers for Phone Numbers and SIP Trunking.
   </Card>
-  <Card icon={<Phone />} title="Telnyx" href="/integrations/telephony/telnyx">
-    Cost-effective alternative to Twilio with excellent SIP capabilities.
+  <Card icon={<Database />} title="Embeddings" href="/integrations/embedding">
+    Vector embedding models for RAG Knowledge Base retrieval.
   </Card>
-  <Card icon={<Phone />} title="Vonage" href="/integrations/telephony/vonage">
-    Global carrier with strong API support.
+  <Card icon={<Database />} title="Rerank" href="/integrations/rerank">
+    Vector rerank models for RAG Knowledge Base retrieval.
   </Card>
-  <Card icon={<Globe />} title="SIP Trunking" href="/integrations/telephony/sip-trunking">
-    **Advanced.** Connect any SIP-compatible provider (ModemTel, SignalWire, Bandwidth) using generic SIP URI credentials.
+  <Card icon={<Blocks />} title="FlowApps" href="/integrations/flowapps">
+    Authentication for external plugins like Cal.com and HubSpot.
   </Card>
 </Cards>
-
-## Adding an Integration
-
-Once you have your credentials ready, navigate to your **Business Dashboard** -> **Integrations** tab to add them.
-
-<Callout type="info" title="Scope">
-  Integrations are scoped to the **Business**. If you manage multiple businesses, you must add the integration to each one separately (or use different keys for billing separation).
-</Callout>

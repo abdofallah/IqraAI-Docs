@@ -1,6 +1,16 @@
 {
     "title": "Integrations",
     "icon": "Blocks",
-    "description": "Connect Providers (Azure, Twilio, etc.)",
-    "root": true
+    "root": true,
+    "pages": [
+        "index",
+        "providers",
+        "telephony",
+        "llm",
+        "tts",
+        "stt",
+        "embedding",
+        "rerank",
+        "flowapps"
+    ]
 }

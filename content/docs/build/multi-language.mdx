@@ -1,0 +1,61 @@
+---
+title: Multi-Language
+description: Configuring agents to speak and understand multiple languages natively without translation layers.
+---
+
+import { Globe, MessageSquare, CheckCircle2, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+
+Iqra AI is built to be **Native Polyglot**.
+
+Most platforms use a "Translation Layer" (User speaks Arabic -> Translate to English -> AI processes -> Translate back to Arabic). This causes high latency and loss of nuance.
+
+We use a **Parallel Context** architecture. You define the prompt, script, and responses *specifically* for Arabic, and *specifically* for English. The agent switches its entire "Brain" and "Voice" to the target language instantly.
+
+## Configuration
+
+### 1. Business Languages
+First, ensure your languages are enabled at the Workspace level.
+*   Go to **Settings** -> **General**.
+*   Add languages (e.g., `en-US`, `ar-SA`, `es-ES`).
+*   Set a **Default Language**.
+
+### 2. Agent Configuration
+An agent does not automatically speak all business languages. You must enable them.
+1.  Go to **Agent Studio** -> **Intelligence**.
+2.  You will see tabs for each Business Language.
+3.  **Map Providers:**
+    *   *English:* STT (Deepgram Nova-2) / TTS (ElevenLabs Turbo).
+    *   *Arabic:* STT (Azure Speech) / TTS (Azure Neural or ElevenLabs Multilingual).
+
+<Callout type="tip" title="Optimization">
+  This allows you to pick the *best* provider for each language. Azure might be better for Arabic dialects, while Deepgram is faster for English.
+</Callout>
+
+### 3. Script Content
+In the **[Script Builder](/build/script)**, every text field (User Query, AI Response) is multi-lingual.
+
+*   **The Global Selector:** Use the dropdown in the top header to switch views.
+*   **Validation:** Look for the <CheckCircle2 className="w-4 h-4 text-green-500 inline"/> checkmark next to the language name. This confirms all nodes have content for that language.
+
+---
+
+## Switching Languages (Runtime)
+
+How does the agent know which language to speak?
+
+### A. Inbound (IVR)
+For [Inbound Routes](/build/campaigns/inbound), we recommend an explicit selection.
+*   *System:* "Press 1 for English. Press 2 for Arabic."
+*   *Result:* The call starts in the selected context.
+
+### B. Outbound (CSV Override)
+For [Outbound Campaigns](/build/campaigns/outbound), you define the starting language in the CSV.
+*   `to_number`: `+968...` -> `override_agent_language_code`: `ar`
+
+### C. Mid-Call Switching (Dynamic)
+The agent can switch languages during the conversation.
+*   **Use Case:** User starts in English but struggles, asks "Do you speak Arabic?"
+*   **Implementation:** Use the **[Change Language](/build/script/nodes#change-language)** node.
+    *   *User Query:* "Speak Arabic" / "حول عربي"
+    *   *Action:* Change Language Node (`ar`).
+    *   *Result:* The agent immediately swaps STT/TTS providers and loads the Arabic prompt context.
