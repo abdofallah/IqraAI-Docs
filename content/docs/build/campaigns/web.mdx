@@ -3,7 +3,7 @@ title: Web Campaigns
 description: Configuring real-time WebRTC and WebSocket sessions for browser and app integrations.
 ---
 
-import { Globe, Code, Cpu, Webhook } from 'lucide-react';
+import { Globe, Code, Cpu, Webhook, BarChart3 } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
 **Web Campaigns** allow you to embed Voice AI directly into your websites, mobile applications, or custom hardware.
@@ -15,13 +15,12 @@ Unlike Telephony campaigns (which rely on old phone networks), Web Campaigns use
 
 ## Creating a Campaign
 
-Navigate to **Business Dashboard** -> **Web Campaigns** -> **Add Campaign**.
+Navigate to **Business Dashboard** -> **Routing & Campaigns** -> **Web Campaigns**.
 
 <Steps>
 <Step>
 ### Agent & Script
-Select the **Agent** (Persona) and **Script** (Logic) to be used.
-*   *Tip:* You can reuse the same Agent/Script from your Telephony campaigns to maintain a consistent experience across Phone and Web.
+Select the [**Agent**](/build/agent) and the [**Opening Script**](/build/script).
 </Step>
 
 <Step>
@@ -33,58 +32,101 @@ Select the **Agent** (Persona) and **Script** (Logic) to be used.
 <Step>
 ### Dynamic Variables
 Define what data you expect the frontend to pass to the agent.
-*   **Example:** If your website has a logged-in user, you can pass their `name` and `account_id` as metadata when the session starts. The Agent can then greet them personally: *"Welcome back, &lcub;&lcub; name &rcub;&rcub;."*
+*   **Example:** If your website has a logged-in user, you can pass their `name` and `account_id` as metadata when the session starts.
+*   **Usage:** The Agent can then greet them personally: *"Welcome back, &lbrace;&lbrace; name &rbrace;&rbrace;."*
 </Step>
 </Steps>
 
-## Integration (The Widget)
+## Client Integration
 
-Once saved, the campaign generates a **Client Token** or **Campaign ID**.
-
-Developers use this ID to connect via our Client SDKs.
-
-```javascript title="Example Frontend Code"
-import { IqraWebClient } from '@iqra-ai/web-sdk';
-
-const client = new IqraWebClient({
-  campaignId: "camp_web_12345", // From your dashboard
-  metadata: {
-    name: "Ali", // Passed to Agent Variables
-    page: "/pricing"
-  }
-});
-
-client.start();
-```
+Once saved, the campaign generates a **Web Campaign ID** (e.g., `camp_web_123...`).
 
 <Callout type="info" title="SDKs">
-  Check the [Developers / SDKs](/developers/sdks) section for detailed implementation guides for React, Vanilla JS, and Mobile.
+  Use this ID with our client libraries. Check the **[Web Widget SDK](/developers/sdks/web-widget)** and **[.NET Middleware](/developers/sdks/middleware)** guides for implementation details.
 </Callout>
+
+---
+
+## Post-Analysis
+
+Configure how the system analyzes the conversation after the session closes.
+
+1.  Navigate to the **Post Analysis** tab.
+2.  Select a **Template** defined in the [Post Analysis Module](/build/operations/analysis).
+3.  **Context Variables:** The LLM will receive the following data:
+
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| `web_session_id` | String | Unique ID for the web session. |
+| `web_session_created_at` | Datetime | When the connection was established. |
+| `web_session_status` | String | Status (e.g., `completed`). |
+| `web_session_web_campaign_id` | String | The Campaign ID. |
+| `web_session_client_identifier` | String | The unique user ID passed from the frontend. |
+| `web_session_dynamic_variables` | Object | JSON of variables passed from frontend. |
+| `web_session_metadata` | Object | JSON of metadata passed from frontend. |
+| `conversation_id` | String | Unique UUID for the conversation logic. |
+| `conversation_start_time` | Datetime | Start of audio stream. |
+| `conversation_end_time` | Datetime | End of audio stream. |
+| `conversation_end_type` | String | `agent_hangup`, `user_hangup`, `timeout`. |
+| `conversation_turns` | Object | Raw JSON array of speaker turns. |
+| `conversation_turns_simplified` | String | Human-readable transcript. |
 
 ---
 
 ## Actions (Webhooks)
 
-Sync the digital conversation events to your backend.
+Sync digital conversation events to your backend.
 
-### 1. On Conversation Initiated
-Triggered when the WebSocket/WebRTC connection is established.
-*   **Variables:** `session_id`, `client_ip`, `metadata`, `timestamp`.
+<Callout type="info" title="Configuration">
+  1. Create a [Custom Tool](/build/tools/custom-tools) first.
+  2. Select that tool in the Action dropdown.
+  3. Map the **Available Variables** (below) to the Tool's Input Schema.
+</Callout>
 
-### 2. On Conversation Initiation Failure
+### 1. On Conversation Initiation Failure
 Triggered if the connection is rejected (e.g., Invalid Token, Geo-blocked, or Concurrency Limit reached).
-*   **Variables:** `error_reason`, `client_ip`.
+
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| `web_session_id` | String | Unique ID for the attempted session. |
+| `web_session_created_at` | Datetime | Time of attempt. |
+| `web_session_status` | String | `failed`. |
+| `web_session_web_campaign_id` | String | The Campaign ID. |
+| `web_session_client_identifier` | String | The unique user ID passed. |
+| `web_session_dynamic_variables` | Object | JSON variables. |
+| `web_session_metadata` | Object | JSON metadata. |
+| `web_session_initiation_error` | String | Error details (e.g., `concurrency_limit`). |
+
+### 2. On Conversation Initiated
+Triggered when the WebSocket/WebRTC connection is established and audio is ready.
+
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| `web_session_id` | String | Unique ID for the active session. |
+| `web_session_created_at` | Datetime | Connection time. |
+| `web_session_status` | String | `active`. |
+| `web_session_web_campaign_id` | String | The Campaign ID. |
+| `web_session_client_identifier` | String | The unique user ID passed. |
+| `web_session_dynamic_variables` | Object | JSON variables. |
+| `web_session_metadata` | Object | JSON metadata. |
+| `conversation_id` | String | Unique UUID for the conversation logic. |
+| `conversation_start_time` | Datetime | Start of audio stream. |
 
 ### 3. On Conversation Ended
 Triggered when the user closes the tab or clicks "End Call".
 
-| Variable | Description |
-| :--- | :--- |
-| `session_id` | Unique UUID. |
-| `duration` | Length of session. |
-| `transcript` | Full text. |
-| `recording_url` | MP3 link (if recording enabled). |
-| `cost` | Compute cost (LLM + STT + TTS). |
-| `summary` | (If Post-Analysis enabled). |
-| `tags` | (If Post-Analysis enabled). |
-| `extracted_data` | (If Post-Analysis enabled) JSON data. |
+| Variable | Type | Description |
+| :--- | :--- | :--- |
+| `web_session_id` | String | Unique ID for the session. |
+| `web_session_created_at` | Datetime | Connection time. |
+| `web_session_status` | String | `completed`. |
+| `web_session_web_campaign_id` | String | The Campaign ID. |
+| `web_session_client_identifier` | String | The unique user ID passed. |
+| `web_session_dynamic_variables` | Object | JSON variables. |
+| `web_session_metadata` | Object | JSON metadata. |
+| `conversation_id` | String | Unique UUID for the conversation logic. |
+| `conversation_start_time` | Datetime | Start of audio stream. |
+| `conversation_end_type` | String | Reason for termination. |
+| `conversation_end_time` | Datetime | End of audio stream. |
+| `conversation_turns` | Object | Raw JSON array of speaker turns. |
+| `conversation_turns_simplified` | String | Human-readable transcript. |

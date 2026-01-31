@@ -1,85 +1,103 @@
 ---
-title: Manual Calls
-description: Launching single tests or mass outbound campaigns via CSV upload.
+title: Make Calls
+description: Launching single tests or advanced bulk outbound campaigns via CSV.
 ---
 
-import { Play, FileSpreadsheet, Clock, Variable } from 'lucide-react';
+import { Play, FileSpreadsheet, Clock, Variable, AlertTriangle, List, CalendarOff } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-The **Make Calls** interface is your launchpad. Located in the sidebar (or top action bar) of the Business Dashboard, it allows you to trigger outbound conversations immediately without using the API.
+The **Make Calls** interface is your command center for outbound traffic. Located in the sidebar, it allows you to bypass the API and trigger calls directly from the UI.
 
 ## 1. Single Call (Testing)
 
-The Single Call mode is designed for rapid testing and QA.
+Designed for rapid QA. Use this to verify your Script logic before launching a campaign.
 
 <Steps>
 <Step>
 ### Select Campaign
-Choose the [Outbound Campaign](/build/campaigns/outbound) you want to use. This determines the Agent, Script, and Caller ID.
+Choose the [Outbound Campaign](/build/campaigns/outbound). This loads the default Agent, Script, and Caller ID strategy.
 </Step>
 
 <Step>
 ### Enter Destination
-Enter the phone number you wish to call.
-*   **Format:** E.164 is recommended (e.g., `+1234567890`), but local formats often work if the provider supports it.
+Enter the phone number in **E.164** format (e.g., `+1234567890`).
 </Step>
 
 <Step>
 ### Fill Variables
-If your selected Campaign/Script has **Required Variables** (e.g., `customer_name`), a form will appear. You must fill these in manually for the agent to work correctly.
+The system automatically detects variables in your script.
+*   **Base Values:** You can fill in default values (e.g., `customer_name` = "Test User") here.
 </Step>
 
 <Step>
 ### Launch
-Click **Launch Call**. The system will initiate the dialing process immediately.
+Click **Launch Call**. The system places the call immediately.
 </Step>
 </Steps>
 
+---
+
 ## 2. Bulk Calls (CSV Upload)
 
-The Bulk Call mode allows you to upload a spreadsheet to trigger hundreds or thousands of calls.
+The Bulk Call engine is designed for scale. You can upload thousands of contacts, and the system will process them according to your concurrency limits.
 
-### The CSV Format
-Your CSV file acts as the database for the campaign.
+### Base Configuration vs. Overrides
+*   **Base Config:** You set default variables in the UI (e.g., `campaign_name` = "Winter Sale").
+*   **CSV Overrides:** Any value in the CSV row **overrides** the base configuration for that specific call.
 
-1.  **Required Column:** You **must** have a column for the phone number (e.g., `phone` or `number`).
-2.  **Variable Columns:** Add columns for every dynamic variable in your script.
+### The CSV Schema
+Iqra AI supports a sophisticated CSV format that allows you to change the Agent, Language, or Retries *per row*.
 
-**Example CSV:**
+**Required Column:**
+*   `to_number`: The destination phone number (International format).
+
+**Advanced Columns (Optional):**
+
+| Header | Description |
+| :--- | :--- |
+| `from_number_id` | Override the Caller ID (Must be a valid UUID from your Numbers tab). |
+| `dynamic_variables` | A JSON object string containing specific variable values. |
+| `override_agent_id` | UUID of a different Agent to handle this specific call. |
+| `override_agent_script_id` | UUID of a different Script to run. |
+| `override_agent_language_code` | Force a language (e.g., `en`, `ar`) for this call. |
+| `override_retry_on_call_declined` | JSON configuration for retry logic. |
+
+### Example CSV Data
+Notice how `dynamic_variables` accepts a JSON object for complex data injection.
+
 ```csv
-phone,customer_name,balance,due_date
-+15550101,John Doe,500,2023-12-01
-+15550102,Jane Smith,120,2023-12-05
+to_number,dynamic_variables,override_agent_language_code
++96899999999,"{""first_name"": ""Ali"", ""balance"": 500}",en
++97150000000,"{""first_name"": ""Fatima"", ""balance"": 120}",ar
 ```
 
-### Mapping Logic
-After uploading the file, Iqra AI will ask you to **Map Columns**.
-
-*   **Phone Number:** Select which column contains the destination number.
-*   **Variables:** Match your CSV headers to the Script Variables.
-    *   *Script Variable:* `{{ name }}` $\to$ *CSV Column:* `customer_name`
-
-<Callout type="warn" title="Data Types">
-  Ensure your CSV data matches the expected type. If your script expects a Date for `due_date`, ensure the CSV column contains valid date strings.
+<Callout type="warn" title="CSV Formatting">
+  When putting JSON inside a CSV column, you must escape double quotes by doubling them (e.g., `""key"": ""value""`).
 </Callout>
 
-### Scheduling
-You don't have to call everyone *right now*.
+---
 
-*   **Immediate:** Starts processing the queue instantly.
-*   **Scheduled:** Pick a future date and time. The system will hold the queue until that moment.
+## Scheduling & Expiry
 
-### Row-Level Overrides
-Before confirming, you can review the parsed data.
-*   **Edit:** You can manually fix a typo in a specific row.
-*   **Delete:** Remove a specific row if you decided not to call that person.
+You don't have to call everyone right now. You can manage the **Time Window** of the blast.
+
+### 1. Start Time
+*   **Immediate:** Begins processing the queue instantly.
+*   **Scheduled:** Holds the queue until a specific future date/time.
+
+### 2. Max Schedule Try (Expiry) <CalendarOff className="w-4 h-4 inline"/>
+This is a critical "Safety Switch."
+
+*   **The Problem:** You upload 5,000 leads at 4:00 PM. Your concurrency limit is 10 calls. The queue is slow. By 9:00 PM, the system is still dialing, disturbing people at night.
+*   **The Solution:** Set **Max Schedule Try** to `08:00 PM`.
+*   **Behavior:** If a queued call attempts to launch *after* 8:00 PM, the system **cancels** it automatically.
 
 ---
 
 ## Monitoring Progress
 
-Once a Bulk Call is launched, it creates a **Queue**.
+Once launched, the job creates a **Queue**.
 
-You can monitor the progress in the **Conversations Tab**.
-*   **Status:** Pending $\to$ In Progress $\to$ Completed/Failed.
-*   **Concurrency:** The system will process the queue based on the concurrency limits defined in your [Subscription Plan](/platform/whitelabel/plans). If you have 1,000 rows but a 10-call concurrency limit, it will make 10 calls at a time until finished.
+1.  Go to the **Conversations Tab**.
+2.  Filter by **Status: Queued**.
+3.  **Concurrency:** The system respects the limits defined in your [Billing Plan](/platform/billing). If you have 50 slots, it processes 50 rows at a time.

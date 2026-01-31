@@ -1,9 +1,9 @@
 ---
-title: Route Overview
-description: Connecting Agents to Phone Numbers, Webhooks, and WebRTC sessions.
+title: Routing Overview
+description: Connecting your Agents to communication channels like Telephony and Web.
 ---
 
-import { Route, PhoneIncoming, PhoneOutgoing, Globe, Webhook, Settings } from 'lucide-react';
+import { Route, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Video, Smartphone } from 'lucide-react';
 
 An **Agent** and a **Script** are just code sitting on a server. To make them useful, you need to connect them to a communication channel.
 
@@ -13,7 +13,7 @@ An **Agent** and a **Script** are just code sitting on a server. To make them us
 
 ```mermaid
 graph LR
-    Channel[Channel 'Phone/Web'] -->|Triggers| Route[Route Configuration]
+    Channel["Channel (Phone/Web)"] -->|Triggers| Route[Route Configuration]
     Route -->|Selects| Agent[Agent Persona]
     Route -->|Runs| Script[Script Logic]
     Route -->|Emmits| Action[Webhook Actions]
@@ -24,7 +24,7 @@ graph LR
 
 ## Campaign Types
 
-Iqra AI supports three distinct types of conversation flows.
+Iqra AI supports three distinct types of conversation flows today.
 
 <Cards>
   <Card icon={<PhoneIncoming />} title="Inbound Routing" href="/build/campaigns/inbound">
@@ -41,15 +41,18 @@ Iqra AI supports three distinct types of conversation flows.
   </Card>
 </Cards>
 
-## Shared Components
+## Future Roadmap: Omni-Channel
 
-Regardless of the campaign type, you will need to manage the underlying infrastructure.
+We are actively working to bring your agents to every platform your customers use.
 
 <Cards>
-  <Card icon={<Settings />} title="Phone Numbers" href="/build/campaigns/numbers">
-    Connect your **BYOC (Bring Your Own Carrier)** accounts like Twilio, Telnyx, or SIP Trunks. Configure region-specific routing for latency optimization.
+  <Card icon={<MessageCircle />} title="WhatsApp Audio">
+    **Coming Soon.** Native routing for WhatsApp Voice Calls, allowing you to bypass traditional PSTN costs entirely.
   </Card>
-  <Card icon={<Webhook />} title="Actions & Webhooks" href="/build/campaigns/inbound#actions">
-    Trigger external APIs when specific events happen (e.g., Call Initiated, Call Ended, Call Failed).
+  <Card icon={<Video />} title="Meeting Bots">
+    **Coming Soon.** Agents that can join **Google Meet**, **Microsoft Teams**, or **Zoom** calls to participate or take notes.
+  </Card>
+  <Card icon={<Smartphone />} title="App Integrations">
+    **Coming Soon.** Direct integrations for **Telegram Voice** and **Messenger**.
   </Card>
 </Cards>

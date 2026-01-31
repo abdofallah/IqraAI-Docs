@@ -1,31 +1,57 @@
 ---
 title: Integration Management
-description: Connecting third-party providers (LLM, TTS, STT, Telephony) to your workspace.
+description: Managing API credentials for AI Models, Telephony, and FlowApp Plugins.
 ---
 
-import { Plug, Cable, CloudCog, Phone, Key } from 'lucide-react';
+import { Plug, Cable, CloudCog, Phone, Key, Database, Blocks, ArrowRight } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-Before you can create an Agent or buy a Phone Number, you need to connect the underlying infrastructure. The **Integrations Tab** is where you store the API keys and credentials for your third-party providers.
+<img src="/images/platform-integration-accounts.jpg" alt="Integration Accounts Manager" className="mt-0 mb-6 rounded-xl w-full border shadow-sm" />
 
-## The Integration Library
+Before you can build an Agent or connect a Phone Number, you must provide the infrastructure. The **Integrations Tab** acts as your workspace's **Key Vault**.
 
-Iqra AI supports a wide range of providers. When you add an integration, you will see **Tags** indicating its capabilities.
+You store your credentials here once, and reuse them across multiple agents, scripts, and campaigns.
+
+## Integration Categories
+
+Iqra AI is vendor-agnostic. We support a wide range of providers across the entire stack.
 
 <Cards>
-  <Card icon={<CloudCog />} title="AI Models (LLM)">
-    Providers like **OpenAI**, **Azure OpenAI**, **Google Gemini**, and **Anthropic**.
-    *   **Usage:** The "Brain" of the agent.
+  <Card icon={<CloudCog />} title="LLM (Intelligence)" href="/integrations/llm">
+    **The Brain.** Providers like **OpenAI**, **Azure**, **Anthropic**, and **Groq**.
   </Card>
-  <Card icon={<Phone />} title="Telephony">
-    Providers like **Twilio**, **Telnyx**, **Vonage**, and **SIP Trunks**.
-    *   **Usage:** Buying/connecting phone numbers and handling calls.
+  
+  <Card icon={<Cable />} title="Voice (TTS & STT)" href="/integrations/voice">
+    **The Senses.** Speech-to-Text and Text-to-Speech providers like **ElevenLabs**, **Deepgram**, and **Azure Speech**.
   </Card>
-  <Card icon={<Cable />} title="Voice (TTS & STT)">
-    Providers like **ElevenLabs**, **Deepgram**, and **Azure Speech**.
-    *   **Usage:** The "Mouth" and "Ears" of the agent.
+  
+  <Card icon={<Phone />} title="Telephony" href="/integrations/telephony">
+    **The Network.** Carriers like **Twilio**, **Telnyx**, and **SIP Trunks**.
+  </Card>
+
+  <Card icon={<Database />} title="Knowledge (RAG)" href="/integrations/knowledge">
+    **The Memory.** Embedding and Reranking models (e.g., **Cohere**, **OpenAI Embeddings**) for vector search.
+  </Card>
+
+  <Card icon={<Blocks />} title="FlowApps (Plugins)" href="/integrations/plugins">
+    **The Capabilities.** Authentication for external apps like **Cal.com**, **HubSpot**, or **Slack**.
   </Card>
 </Cards>
+
+---
+
+## Concept: Connection vs. Configuration
+
+It is important to understand the difference between adding an integration and using it.
+
+| Concept | Location | Description |
+| :--- | :--- | :--- |
+| **Integration Account** | **Here (Integrations Tab)** | **The Credential.** You add your OpenAI API Key here. You give it a name (e.g., "My Prod Key"). |
+| **Configuration** | **Agent Studio/Knowledge Base Studio/Etc** | **The Usage.** You select *which* model to use (e.g., GPT-4 vs GPT-3.5) and set parameters (Temperature). |
+
+**Benefit:** You can add one OpenAI account, and use it to power 5 different Agents, each using a different model and temperature setting.
+
+---
 
 ## Adding an Integration
 
@@ -34,37 +60,35 @@ Navigate to **Business Dashboard** -> **Integrations**.
 <Steps>
 <Step>
 ### Select Provider
-Click **Add Integration**. You will see a list of supported services. Select the one you wish to connect (e.g., **OpenAI**).
+Click **Add Integration**. You will see the library of supported services.
+*   *Tip:* Use the tags (e.g., `LLM`, `Embedding`) to filter the list.
 </Step>
 
 <Step>
 ### Enter Credentials
-Most integrations require an **API Key**.
-*   *Simple:* For OpenAI/ElevenLabs, just paste the key.
-*   *Complex:* For Azure, you may need the Region, Endpoint URL, and Deployment Name.
+Enter the required secrets (API Key, Region, etc.).
+*   **Encrypted Storage:** Keys are encrypted at rest. Once saved, the full key is never displayed again in the UI.
 
-<Callout type="info" title="Need Help?">
-  For detailed instructions on where to find these keys, please refer to the [Integrations Guide](/integrations).
+<Callout type="info" title="Setup Guides">
+  Not sure where to find your API Key? Check our detailed connection guides in the **[Integrations Hub](/integrations/providers)**.
 </Callout>
 </Step>
 
 <Step>
-### Naming
-Give the integration a recognizable name (e.g., "My Production Twilio" or "Azure East US"). This name will appear in dropdown menus throughout the platform.
+### Naming & Scope
+Give the integration a recognizable name (e.g., "Azure East US").
+*   **Workspace Scope:** This integration is available *only* to this specific Business. If you manage multiple clients, Client A cannot see Client B's keys.
 </Step>
 </Steps>
 
-## Isolation & Scope
+## Updating Credentials
 
-Integrations added here are **Specific to this Business Workspace**.
+If you rotate your API keys on the provider side (e.g., generating a new Twilio Token), you must update them here immediately.
 
-*   **Isolation:** If you manage multiple businesses (e.g., for different clients), Client A cannot use Client B's OpenAI key, even if you own both businesses.
-*   **Security:** API Keys are encrypted at rest. Once saved, the full key is never displayed again in the UI.
+1.  Click the **Edit** icon on the integration row.
+2.  Paste the new key.
+3.  Click **Update**.
 
-## Editing & Updating
-
-You can edit an integration at any time to update a rotated API key or change configuration details.
-
-<Callout type="warn" title="Impact Analysis">
-  Changing an integration's credentials will immediately affect **all** Agents and Phone Numbers using it. If you invalidate a Twilio key, all active phone numbers linked to that integration will stop working immediately.
+<Callout type="warn" title="Immediate Impact">
+  Updates take effect instantly. However, any active Agents conversation will keep using the old integration for the lifetime of the conversation so if the old key is invalidated/expired, the conversation may fail. However, modules like phone number may stop working immediately as it depends on active integration if the key is invalidated/expired.
 </Callout>

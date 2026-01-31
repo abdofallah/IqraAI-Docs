@@ -1,68 +1,74 @@
 ---
 title: Connections Overview
-description: Extending your agent's capabilities with external APIs and infrastructure.
+description: Manage external connectivity via API Integrations, Phone Numbers, and Custom Tools.
 ---
 
-import { Hammer, Plug, Cable, ArrowRightLeft, Database } from 'lucide-react';
+import { Hammer, Plug, Phone, ArrowRightLeft, Database, Network } from 'lucide-react';
 
-To build a truly useful agent, it needs to interact with the outside world. Whether it's looking up a customer order in your database, sending a calendar invite, or simply using a specific voice provider, this module handles the connections.
+To be useful, an Agent must be connected to the world. This section manages the **"External Interface"** of your workspace—the pipes that let data and audio flow in and out.
 
-## The Distinction
+## The Connectivity Stack
 
-It is important to differentiate between **Integrations** and **Tools**.
+It is important to understand the relationship between these three modules:
 
-| Feature | Concept | Analogy | Example |
-| :--- | :--- | :--- | :--- |
-| **Integrations** | **Infrastructure** | The "Organs" | Connecting your OpenAI account, Twilio phone number, or ElevenLabs voice. |
-| **Tools** | **Actions** | The "Hands" | Fetching a user profile, updating a CRM status, or booking a meeting via API. |
+1.  **Integrations:** The **Keys**. (e.g., Your Twilio Account credentials).
+2.  **Phone Numbers:** The **Assets**. (e.g., The specific +1 number purchased from Twilio).
+3.  **Custom Tools:** The **Actions**. (e.g., A webhook to update your CRM).
 
 ## Architecture Flow
 
 ```mermaid
 graph LR
     subgraph Infrastructure
-        LLM[OpenAI]
-        TTS[ElevenLabs]
-        Phone[Twilio]
+        Twilio[Twilio Integration]
+        OpenAI[OpenAI Integration]
+    end
+
+    subgraph Assets
+        Number[Phone Number]
     end
 
     subgraph Runtime
         Agent[Agent Brain]
     end
 
-    subgraph "External World"
+    subgraph External_World
         CRM[Your CRM]
-        Cal[Calendar API]
-        DB[Database]
     end
 
-    LLM -->|Powers| Agent
-    TTS -->|Voices| Agent
-    Phone -->|Connects| Agent
-
-    Agent -->|Decides to use| Tool{Custom Tool}
-    Tool -->|HTTP GET/POST| CRM
-    Tool -->|HTTP POST| Cal
+    %% Flow
+    Twilio -->|Provisions| Number
+    Number -->|Routes Calls to| Agent
+    OpenAI -->|Powers| Agent
+    
+    Agent -->|Executes| Tool[Custom Tool]
+    Tool -->|HTTP Request| CRM
     
     style Agent fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
+    style Number fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
     style Tool fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-## Modules
+---
+
+## Workspace Modules
 
 <Cards>
-  <Card icon={<Hammer />} title="Custom Tools" href="/build/tools/custom-tools">
-    Define **HTTP Webhooks**. Teach your agent how to talk to your API, define input schemas (variables), and process the JSON response into natural language.
+  <Card icon={<Plug />} title="Integrations" href="/build/tools/integrations">
+    **The Key Vault.** Connect third-party providers.
+    *   **AI:** LLM, TTS, STT keys.
+    *   **Telephony:** Twilio, Telnyx, SIP credentials.
   </Card>
-  
-  <Card icon={<Plug />} title="Manage Integrations" href="/build/tools/integrations">
-    Connect your **Provider Accounts**. Manage API keys for LLMs, TTS, STT, and Telephony providers specific to this Business Workspace.
+
+  <Card icon={<Phone />} title="Phone Numbers" href="/build/tools/phone-numbers">
+    **The Lines.** Manage your **BYOC (Bring Your Own Carrier)** numbers.
+    *   **Region Control:** Assign numbers to specific server regions for low latency.
+    *   **Webhooks:** Configure carrier routing.
+  </Card>
+
+  <Card icon={<Hammer />} title="Custom Tools" href="/build/tools/custom-tools">
+    **The Hands.** Build raw HTTP webhooks to connect your agent to internal APIs.
+    *   Define **Input Schemas** (what variables to send).
+    *   Write **JavaScript** to parse the response into natural language.
   </Card>
 </Cards>
-
-## System Tools vs. Custom Tools
-
-When building a Script, you will see two types of tools:
-
-1.  **System Tools:** Built-in capabilities provided by Iqra AI (e.g., End Call, Transfer, Knowledge Base Search). You do not need to configure these here.
-2.  **Custom Tools:** HTTP connectors you build yourself in this module (e.g., "Check Order Status"). These appear as a **Custom Tool Node** in the Script Builder.

@@ -1,0 +1,84 @@
+---
+title: Phone Numbers
+description: Managing BYOC (Bring Your Own Carrier) numbers, region routing, and webhook configuration.
+---
+
+import { Phone, Globe, Server, Cable, AlertTriangle, Link } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI operates on a **Bring Your Own Carrier (BYOC)** model. We do not sell phone numbers directly. Instead, you connect your existing accounts (Twilio, Telnyx, Vonage, or SIP Trunks) to our platform.
+
+This gives you full ownership of your numbers and allows you to negotiate rates directly with carriers.
+
+## Adding a Number
+
+Navigate to **Business Dashboard** -> **Phone Numbers**.
+
+<Callout type="info" title="Provider Guides">
+  Need specific instructions for your carrier? Check out the list of all providers at [Integrations Telephony](/integrations/telephony) which includes detailed guide for each available telephony provider.
+  Quick guide access to commonly used providers:
+  *   **[Twilio Setup](/integrations/telephony/twilio)**
+  *   **[Telnyx Setup](/integrations/telephony/telnyx)**
+  *   **[SIP Trunking](/integrations/telephony/sip-trunking)**
+</Callout>
+
+<Steps>
+<Step>
+### Select Provider
+Choose the Integration account this number belongs to.
+*   *Note:* You must have added the [Integration](/build/tools/integrations) first.
+</Step>
+
+<Step>
+### Enter Number (DID)
+Enter the phone number in **E.164 Format** (e.g., `+1234567890`).
+*   **Format:** Must include the `+` and Country Code.
+*   **Match:** Must match exactly what is in your carrier account.
+</Step>
+
+<Step>
+### Select Route Server (Region)
+**Critical for Latency.** You must define which Iqra AI server region handles calls for this specific number.
+
+*   **Scenario:** You have a UK Phone Number (+44).
+*   **Action:** Select the **London (EU)** Route Server.
+*   **Result:** Audio packets travel a short distance between the UK Carrier and our UK Server.
+
+<Callout type="warn" title="Latency Penalty">
+  If you route a UK number to a US Server, you introduce trans-atlantic latency (~150ms extra delay) for every turn of the conversation.
+</Callout>
+</Step>
+</Steps>
+
+---
+
+## Webhook Configuration
+
+When a call comes into your number, the Carrier (e.g., Twilio) needs to know where to send the audio. This is done via **Webhooks**.
+
+### Automatic Configuration
+For API-first providers like **Twilio** and **Telnyx**, Iqra AI attempts to automatically update the Voice URL settings for that number via their API when you save.
+
+### Manual Configuration
+If the auto-update fails, or if you are using **SIP Trunking**, you must configure this manually.
+
+1.  In the Numbers list, locate your number.
+2.  Click the **Webhook / Config** button in the **Actions** column.
+3.  A popup will appear with provider-specific details:
+    *   **Twilio/Telnyx:** Copy the `Voice Request URL`.
+    *   **SIP Trunking:** Copy the `SIP URI` and `Header` requirements.
+4.  Log in to your Carrier's dashboard and paste these values into the appropriate routing configuration.
+
+---
+
+## SIP Trunking
+
+For SIP trunks, the setup often involves more than just a URL. The **Config Popup** will provide:
+
+*   **SIP URI:** The termination address (e.g., `sip:your-number@sip.iqra.bot`).
+*   **Headers:** Required SIP headers (e.g., `X-Business-ID`) for authentication.
+*   **IP Whitelisting:** If your provider requires IP whitelisting, please refer to the [Integrations Guide](/integrations/telephony/sip-trunking) for our signaling and media subnets.
+
+<Callout type="error" title="Deleting Numbers">
+  Removing a number from Iqra AI **does not** cancel it with your carrier. You will continue to be billed by Twilio/Telnyx/Vonage until you release the number in their console.
+</Callout>
