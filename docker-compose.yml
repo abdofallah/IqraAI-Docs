@@ -1,0 +1,11 @@
+services:
+  iqraai-docs:
+    container_name: iqraai-docs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
