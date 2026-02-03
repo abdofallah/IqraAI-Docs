@@ -66,7 +66,7 @@ The documentation covers:
 We provide an [official Docker image](https://hub.docker.com/r/abdofallah/iqraai-docs) for easy deployment.
 
 ### Using Docker Compose
-You can spin up the documentation site locally or on your server using the included compose file.
+You can spin up the documentation site locally or on your server using the [included compose file](https://github.com/abdofallah/IqraAI-Docs/blob/main/docker-compose.yml).
 
 1.  **Run:**
     ```bash
@@ -79,7 +79,7 @@ You can spin up the documentation site locally or on your server using the inclu
 To build the image yourself:
 
 ```bash
-docker build -t abdofallah/iqraai-docs .
+docker build -t iqraai/iqraai-docs .
 ```
 
 ---
