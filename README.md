@@ -25,13 +25,13 @@
 
 ## 📚 Overview
 
-This repository contains the source code for **[docs.iqra.bot](https://docs.iqra.bot)**. It is built using **[Fumadocs](https://fumadocs.dev)** and **Next.js**.
+This repository contains the source code for **[docs.iqra.bot](https://docs.iqra.bot)**. It is built using **[Fumadocs](https://fumadocs.dev)** and **[Next.js](https://nextjs.org)**.
 
 The documentation covers:
 *   **Introduction:** Philosophy & Architecture.
 *   **Platform:** User Dashboard & Whitelabeling.
-*   **Build & Deploy:** The Visual Script Builder & Agents.
-*   **Integrations:** Providers, LLM/STT/TTS, rerank, embedding, & Telephony.
+*   **Build & Deploy:** The Visual Script Builder, Agents, Tools/Connections, Rag/Data & Route/Campaigns.
+*   **Integrations:** Providers, LLM/STT/TTS, Rerank, Embedding, FlowApps & Telephony.
 *   **Developers:** Self-Hosting & FlowApp Development.
 *   **API Reference:** OpenAPI based dynamic API references.
 
@@ -99,7 +99,3 @@ Contributions are welcome!
 3.  Commit your Changes (`git commit -m 'Add some AmazingDocs'`).
 4.  Push to the Branch (`git push origin feature/AmazingDocs`).
 5.  Open a Pull Request.
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
