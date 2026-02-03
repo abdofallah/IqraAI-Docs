@@ -7,7 +7,6 @@ const inter = Inter({
   subsets: ['latin'],
 });
 
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://docs.iqra.bot'),
   title: {
