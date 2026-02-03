@@ -63,7 +63,7 @@ The documentation covers:
 
 ## 🐳 Docker Deployment
 
-We provide an official Docker image for easy deployment.
+We provide an [official Docker image](https://hub.docker.com/r/abdofallah/iqraai-docs) for easy deployment.
 
 ### Using Docker Compose
 You can spin up the documentation site locally or on your server using the included compose file.
