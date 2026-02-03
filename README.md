@@ -90,6 +90,7 @@ docker build -t abdofallah/iqraai-docs .
 *   `app/`: Next.js app router structure.
 *   `public/`: Static assets (images, logos).
 *   `lib/`: Fumadocs configuration and source loaders.
+*   `v1.json`: Fallback OpenAPI schema if api is down.
 
 ## 🤝 Contributing
 
