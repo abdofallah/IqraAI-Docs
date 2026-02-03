@@ -1,4 +1,4 @@
-name: Docker Publish
+name: Docker Image Publish
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
 env:
   REGISTRY: docker.io
   IMAGE_NAME: abdofallah/iqraai-docs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
