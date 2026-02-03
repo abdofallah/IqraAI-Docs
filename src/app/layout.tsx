@@ -34,6 +34,7 @@ export default async function Layout({ params, children }: {
     <html lang={lang} className={inter.className} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen" dir={rightToLeftLanguages.includes(lang) ? 'rtl' : 'ltr'}>
         {children}
+        <script defer src="https://umami.badal.om/script.js" data-website-id="b06ff4c3-d567-4360-8d9e-931d57de674f"></script>
       </body>
     </html>
   );
