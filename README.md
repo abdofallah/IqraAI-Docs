@@ -17,7 +17,7 @@
     ·
     <a href="https://github.com/abdofallah/IqraAI/issues">Report Bug</a>
     ·
-    <a href="https://discord.gg/badal">Join Community</a>
+    <a href="https://discord.gg/UkKHtmqmMH">Join Community</a>
   </p>
 </div>
 
@@ -31,8 +31,9 @@ The documentation covers:
 *   **Introduction:** Philosophy & Architecture.
 *   **Platform:** User Dashboard & Whitelabeling.
 *   **Build & Deploy:** The Visual Script Builder & Agents.
-*   **Integrations:** Providers, LLMs, & Telephony.
+*   **Integrations:** Providers, LLM/STT/TTS, rerank, embedding, & Telephony.
 *   **Developers:** Self-Hosting & FlowApp Development.
+*   **API Reference:** OpenAPI based dynamic API references.
 
 ## 🚀 Getting Started
 
