@@ -1,79 +1,93 @@
 ---
-title: Infrastructure Topology
-description: defining regions and registering server instances for load balancing.
+title: Infrastructure
+description: Managing regions, registering server nodes, and monitoring real-time capacity.
 ---
 
-import { Server, Globe, Key, AlertTriangle, Network } from 'lucide-react';
+import { Server, Activity, HardDrive, ShieldAlert, Power, Network } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-Iqra AI uses a **Service Discovery** model. Simply deploying a Docker container is not enough; you must register that container's address and credentials in the **Admin Dashboard** so the rest of the cluster knows it exists.
+The **Infrastructure** tab is where you map the physical topology of your deployment to the logical database. You use this to register servers, configure regional storage, and monitor live traffic.
 
-## 1. Managing Regions
+## 1. The Dashboard
 
-A **Region** is a logical grouping of servers. It allows you to optimize latency by keeping call processing local to the user.
+The top-level view provides a real-time pulse of the entire cluster.
 
-1.  Navigate to **Admin Dashboard** -> **Infrastructure** -> **Regions**.
-2.  Click **Add Region**.
-    *   **Name:** Display name (e.g., "US East (N. Virginia)").
-    *   **Identifier:** System ID (e.g., `us-east-1`). This is used in API routing.
+*   **Live Conversations:** The total number of active Phone and Web sessions across all regions.
+*   **Outbound Pipeline:**
+    *   *Processing:* Calls currently being dialed or handled by the Proxy.
+    *   *Pending:* Calls sitting in the queue waiting for a slot.
+*   **Capacity (Active/Total):**
+    *   *Backend Nodes:* How many Audio Processors are online vs. total registered.
+    *   *Proxy Nodes:* How many Gateways are online vs. total registered.
 
-<Callout type="info" title="Routing Logic">
-  When you add a Phone Number in the Business Dashboard, you assign it to one of these Regions. The Proxy then looks for **Backend Servers** registered to *that specific region* to handle the call.
+<Callout type="tip" title="Health Check">
+  If **Capacity** shows `0/4`, it means your servers are registered in the DB but are not sending heartbeats. Check your firewall and `appsettings.json` configuration.
 </Callout>
 
-## 2. Registering Servers
+---
 
-Once a Region exists, you must populate it with servers.
+## 2. Managing Regions
 
-### The Handshake Mechanism
-For security, the Cluster uses a shared-secret handshake. You define a secret in your server's configuration, and you provide that same secret here.
+Iqra AI is a multi-region system. A **Region** is a logical group of resources (Servers + Storage) located in the same geographic area (e.g., `US-EAST`, `OM-MCT`).
 
-```json title="appsettings.json (Server Config)"
-{
-  "General": {
-    // [!code highlight]
-    "ApiSecretToken": "my-super-secure-secret-123"
-  }
-}
-```
+### Creating a Region
+1.  Navigate to the **Regions** tab.
+2.  Click **Add New Region**.
+3.  **Country:** Select the physical location (for flag display).
+4.  **Region Name:** An internal identifier (e.g., `us-east-1`).
+    *   *Note:* The resulting **Region ID** is what you put in your `appsettings.json`.
 
-<Steps>
-<Step>
-### Add Proxy Server
-The Proxy handles inbound telephony webhooks.
-1.  Select the **Region**.
-2.  Click **Add Server** -> **Type: Proxy**.
-3.  **URL:** The internal or public HTTP address of the running `IqraProxyApp` container (e.g., `http://10.0.0.5:8080` or `https://proxy-us.mydomain.com`).
-4.  **API Secret:** Must match the `ApiSecretToken` in the Proxy's `appsettings.json`.
-</Step>
+### Regional S3 Storage
+Each region can have its own Object Storage bucket to minimize audio latency.
+1.  Click on a Region card to enter details.
+2.  Go to the **S3 Storage** tab.
+3.  Enter your credentials:
+    *   **Endpoint URL:** The internal address (e.g., `http://rustfs:9000` or AWS URL).
+    *   **Access/Secret Keys:** Your storage credentials.
+    *   **SSL:** Enable if using HTTPS.
 
-<Step>
-### Add Backend Server
-The Backend processes audio and LLM logic. You can add **multiple** backends to a single region to scale horizontally.
-1.  Select the **Region**.
-2.  Click **Add Server** -> **Type: Backend**.
-3.  **URL:** The address of the `IqraBackendApp` container.
-4.  **API Secret:** Must match the `ApiSecretToken` in the Backend's `appsettings.json`.
-5.  **Capacity:** (Optional) Define max concurrent calls this node can handle (overrides dynamic load balancing if set).
-</Step>
+<Callout type="info" title="Why Regional Storage?">
+  When an agent in `US-EAST` generates audio, it saves it to this specific S3 bucket. This prevents the system from trying to upload a file across the ocean to a central bucket during a live call.
+</Callout>
 
-<Step>
-### Add Storage Server (Optional)
-If you are using **RustFS** (the built-in file server) instead of AWS S3, you must register it.
-1.  Select **Type: Storage**.
-2.  **URL:** The address of the RustFS container.
-3.  **API Secret:** The access key defined in RustFS config.
-</Step>
-</Steps>
+---
 
-## Server Status & Maintenance
+## 3. Server Node Management
 
-The Admin Dashboard allows you to control traffic flow without killing containers.
+Inside a Region, you manage the worker nodes.
 
-*   **Enabled/Disabled Toggle:** You can disable a specific Backend server.
-    *   *Effect:* The Proxy will stop routing *new* calls to this server. Existing calls continue until finished.
-    *   *Use Case:* Draining a node before upgrading the Docker image.
+### Registering a Node
+To add capacity to a region:
+1.  Click **Add Proxy** or **Add Backend**.
+2.  **Endpoint / IP:** The address where the service is reachable (e.g., `http://10.0.0.5:5002`).
+3.  **SIP Port:**
+    *   **Proxy:** Default `5060`.
+    *   **Backend:** Default `5080`.
+4.  **API Secret:** The system generates a secure token. **You must copy this** into the server's `appsettings.json`.
 
-<Callout type="error" title="Connectivity Check">
-  The dashboard does not currently ping servers automatically to verify uptime. If you register a server with the wrong URL or API Key, calls routed to it will fail with `500 Internal Server Error`. Double-check your settings!
+### Lifecycle Controls
+You can control the state of running servers directly from the dashboard.
+
+| Control | Function | Use Case |
+| :--- | :--- | :--- |
+| **Maintenance Mode** | Stops the node from accepting *new* tasks. Existing calls continue. | **Draining.** Use this before an update. |
+| **Disable Node** | Permanently marks the node as offline in the DB. | **Decommissioning.** Use when removing a server forever. |
+| **Shutdown Node** <Power className="w-3 h-3 inline text-red-500"/> | Sends a signal to the app to terminate the process. | **Restarting.** Requires the app to be running as a Service with restart policies. |
+
+---
+
+## 4. Singleton Nodes
+
+The **Frontend** and **Background** services are singletons (one per cluster). You configure them in their respective tabs.
+
+### Frontend Node
+*   **Metrics:** View CPU/RAM usage of the dashboard server.
+*   **Version:** Verify the currently running build version.
+
+### Background Node
+*   **Configuration:** You must register the endpoint and API Key for the background processor here.
+*   **Why?** The API/Frontend needs to know where to send "Job Triggers" (e.g., "Run cleanup now"). If this is missing, background tasks may fail to trigger manually.
+
+<Callout type="warn" title="Configuration Sync">
+  Ensure the **API Secret** you generate here matches the `Security.ApiKey` in your `IqraBackgroundProcessor/appsettings.json`.
 </Callout>

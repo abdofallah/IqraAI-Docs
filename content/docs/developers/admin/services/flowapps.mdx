@@ -1,0 +1,37 @@
+---
+title: FlowApps
+description: Managing the availability and maintenance status of plugin integrations.
+---
+
+import { Blocks, ShieldAlert, Power } from 'lucide-react';
+
+**FlowApps** are the plugins of the Iqra AI ecosystem (e.g., Cal.com, HubSpot). Unlike AI Services (which are interchangeable), FlowApps are specific integrations with unique logic.
+
+## Discovery
+
+Just like other services, FlowApps are **Auto-Discovered** via Reflection.
+*   The system scans `IqraInfrastructure/Managers/FlowApp/Apps/`.
+*   It registers every class implementing `IFlowApp`.
+
+## Management Controls
+
+Navigate to **Admin Dashboard** -> **FlowApps** (or Plugins).
+
+Since the logic is defined in code and the UI is defined in JSON Schema, the Admin Dashboard's role is primarily **Governance**.
+
+### 1. App-Level Control
+You can disable an entire App globally.
+*   **Action:** Toggle `Disabled`.
+*   **Effect:** The App disappears from the Script Builder sidebar. Existing scripts using it will fail to execute the node.
+*   **Use Case:** The third-party provider is down, or you are deprecating support.
+
+### 2. Action-Level Control
+You can disable specific actions within an App.
+*   **Scenario:** Cal.com changes their "Book Meeting" API, breaking it, but "Get Slots" still works.
+*   **Action:** Click on **Cal.com** -> Find **BookMeeting** -> Toggle `Disabled`.
+*   **Effect:** Users can still use the app, but that specific node will return an error if executed.
+
+### 3. Maintenance Messages
+You can set a **Maintenance Reason**.
+*   If you disable an App/Action, you can provide a text reason (e.g., *"API under maintenance, back in 2 hours"*).
+*   This message is relayed to the user in the Script Builder UI (Future Feature).

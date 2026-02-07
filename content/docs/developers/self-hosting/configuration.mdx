@@ -1,142 +1,90 @@
 ---
-title: Configuration
-description: Configuring appsettings.json, connection strings, and security secrets.
+title: Configuration Reference
+description: Detailed reference for appsettings.json across all Iqra AI services.
 ---
 
-import { Settings, FileJson, Key, Shield, Database } from 'lucide-react';
-import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { FileJson, AlertTriangle, Key, Server, Database, Globe } from 'lucide-react';
 
-Iqra AI applications are built on ASP.NET Core and are configured via `appsettings.json`.
+Each service in the Iqra AI cluster (Frontend, Proxy, Backend, Background) is configured via `appsettings.json`.
 
-While each application (Frontend, Proxy, Backend) has its own file, they share a common structure for connecting to the Data Layer.
+To ensure the distributed system functions correctly, specific settings must be synchronized across nodes.
 
-## 1. Shared Connection Strings
+## 1. Shared Configuration
+The following settings are the "glue" of the cluster. They must be configured **identically** across the specific services listed to ensure the distributed system functions as a single unit.
 
-Every application needs to talk to the databases. You must ensure these strings match the infrastructure you set up in the [Dependencies](/developers/self-hosting/dependencies) step.
+| Section : Key | Description | Required By | Shared Value? |
+| :--- | :--- | :--- | :--- |
+| `MongoDatabase:ConnectionString` | Connection string to the primary MongoDB cluster. | **All Services** | ✅ **YES** |
+| `RedisDatabase:Endpoint` | Host:Port of the shared Redis instance (e.g., `redis:6379`). | **All Services** | ✅ **YES** |
+| `RedisDatabase:Password` | Password for the shared Redis instance. | **All Services** | ✅ **YES** |
+| `Milvus:Endpoint` | URL to the Vector Database (e.g., `http://milvus:19530`). | Frontend, Backend, Background | ✅ **YES** |
+| `Milvus:Database` | Database name (Default: `default`). | Frontend, Backend, Background | ✅ **YES** |
+| `Milvus:Username` | (Optional) Milvus Auth User. | Frontend, Backend, Background | ✅ **YES** |
+| `Milvus:Password` | (Optional) Milvus Auth Password. | Frontend, Backend, Background | ✅ **YES** |
+| `Integrations:EncryptionKey` | **32-Byte Key.** Used to encrypt/decrypt third-party API Keys (e.g., Twilio/OpenAI) stored in MongoDB. If this mismatches, the Backend cannot use keys saved by the Frontend. | Frontend, Proxy, Backend | ✅ **YES** |
+| `S3Storage:DefaultStorageRegionId` | The Region ID (e.g., `US-EAST`) where global assets like Business Logos are stored. | Frontend, Background | ✅ **YES** |
 
-```json title="appsettings.json (Shared)"
-{
-  "ConnectionStrings": {
-    "MongoDB": "mongodb://admin:password123@localhost:27017",
-    "Redis": "localhost:6379,abortConnect=false",
-    "Milvus": "localhost",
-    "MilvusPort": "19530"
-  }
-}
-```
-
-## 2. The Internal Handshake
-
-To secure communication between the **Proxy** (Gateway) and the **Backend** (Processor), we use a shared secret token.
-
-*   **Requirement:** This string must be identical across all your deployed services.
-*   **Usage:** It is sent in the `X-Internal-Secret` header for inter-service API calls.
-
-```json
-{
-  "General": {
-    "ApiSecretToken": "CHANGE_ME_TO_A_LONG_RANDOM_STRING"
-  }
-}
-```
+<Callout type="error" title="Encryption Warning">
+  **Do not lose the `Integrations:EncryptionKey`.** If you change this key after adding integrations, all existing connections (OpenAI, Twilio) will break because the system can no longer decrypt the stored credentials.
+</Callout>
 
 ---
 
-## 3. Backend Configuration
+## 2. Hardware
+Defining how the application interacts with the physical server.
 
-The **IqraBackendApp** requires specific configuration for Audio Processing and Object Storage.
-
-```json title="IqraBackendApp/appsettings.json"
-{
-  "ConnectionStrings": { ... }, // Same as above
-  "General": { "ApiSecretToken": "..." }, // Same as above
-
-  // S3 / RustFS Configuration
-  "Storage": {
-    "ServiceUrl": "http://localhost:9000",
-    "AccessKey": "admin",
-    "SecretKey": "password123",
-    "BucketName": "iqra-assets",
-    "ForcePathStyle": true // Required for RustFS/MinIO
-  },
-
-  // Real-time Audio Settings
-  "AudioSettings": {
-    "SampleRate": 8000,       // Standard Telephony Rate (8kHz)
-    "FrameSize": 20,          // ms per packet
-    "JitterBufferMs": 200,    // Buffer for network instability
-    "VadSensitivity": 2       // 0-3 (3 is most sensitive)
-  },
-
-  // Load Balancing Limits
-  "Server": {
-    "ExpectedMaxConcurrentCalls": 100 // Max calls this node accepts before rejecting
-  }
-}
-```
-
-## 4. Frontend Configuration
-
-The **IqraFrontend** handles User Authentication and the UI.
-
-```json title="IqraFrontend/appsettings.json"
-{
-  "ConnectionStrings": { ... }, 
-  
-  // JWT Authentication for Users
-  "Jwt": {
-    "Key": "SUPER_SECRET_KEY_MUST_BE_32_CHARS_LONG",
-    "Issuer": "iqra.bot",
-    "Audience": "iqra.bot",
-    "ExpiryDays": 7
-  },
-
-  // Initial Admin Setup
-  "Admin": {
-    "DefaultEmail": "admin@localhost.com",
-    "DefaultPassword": "AdminPassword123!" // Change immediately after login
-  }
-}
-```
-
-## 5. Proxy Configuration
-
-The **IqraProxyApp** acts as the router.
-
-```json title="IqraProxyApp/appsettings.json"
-{
-  "ConnectionStrings": { ... },
-  "General": { "ApiSecretToken": "..." },
-  
-  // Public URL for Webhooks (Required for Twilio validation)
-  "Server": {
-    "PublicUrl": "https://proxy.your-domain.com"
-  }
-}
-```
-
+| Section : Key | Description | Required By | Shared Value? |
+| :--- | :--- | :--- | :--- |
+| `Hardware:NetworkInterfaceName` | The exact name of the network adapter on the host (e.g., `eth0` or `Realtek...`). Used to generate unique Snowflake IDs. | **All Services** | ❌ No (Per Machine) |
+| `Hardware:MaxNetworkDownloadMbps` | Bandwidth for download. | Backend | ❌ No (Per Machine) |
+| `Hardware:MaxNetworkUploadMbps` | Bandwidth for upload. | Backend | ❌ No (Per Machine) |
 ---
 
-## Environment Variables (Docker)
+## 3. Application Specific Settings
 
-If you are deploying via Docker, **do not** edit the `appsettings.json` file inside the image. Instead, override the settings using Environment Variables.
+### Frontend App
+Controls the User Interface, Authentication, and Document Processing.
 
-ASP.NET Core uses the double underscore `__` to represent nested JSON keys.
+| Block | Key | Description |
+| :--- | :--- | :--- |
+| - | `URL` |  The public facing URL of the dashboard (no trailing slash). |
+| `Docling` | `EndPoint` | URL of the Docling parsing service (e.g., `http://docling:8000`). |
+| `MailSMTP` | `Host`, `Port`, `Username`, `Password` | SMTP settings for sending password reset emails and invites. |
+| `ForwardedHeaders` | `KnownProxies` | List of IP addresses (e.g., Load Balancer/Cloudflare) to trust `X-Forwarded-For` headers from. |
+| `UserApiKeys` | `ApiKeyEncryptionKey` | Key used to encrypt user-generated API tokens. |
+| `UserApiKeys` | `PayloadEncryptionKey` | Key used to sign JWT payloads for user sessions. |
+| `User` | `EmailHashPepper` | Secret string added to emails before hashing for privacy. |
 
-| JSON Path | Environment Variable |
-| :--- | :--- |
-| `ConnectionStrings` -> `MongoDB` | `ConnectionStrings__MongoDB` |
-| `Storage` -> `SecretKey` | `Storage__SecretKey` |
-| `General` -> `ApiSecretToken` | `General__ApiSecretToken` |
+### Proxy App
+Controls the Telephony Gateway and Queue Dispatching.
 
-**Example Docker Compose Entry:**
+| Block | Key | Description |
+| :--- | :--- | :--- |
+| `Proxy` | `Id` | **Unique UUID.** Must match the Server ID registered in [Admin Dashboard](/developers/admin/infrastructure). |
+| `Proxy` | `RegionId` | The geographic region code (e.g., `OM-MCT`) this Proxy serves. |
+| `Proxy` | `ApiKey` | A secret token used to authenticate internal API calls services. Must match the server api key registered in [Admin Dashboard](/developers/admin/infrastructure). |
+| `Proxy:OutboundProcessing` | `PollingIntervalSeconds` | Frequency (in seconds) to check MongoDB for new queued calls. |
+| `Proxy:OutboundProcessing` | `DbFetchBatchSize` | Number of queue items to fetch from DB in one go. |
+| `Proxy:OutboundProcessing` | `ProcessingBatchSize` | Number of items to process/dial in parallel. |
 
-```yaml
-services:
-  backend:
-    image: iqra-backend:latest
-    environment:
-      - ConnectionStrings__MongoDB=mongodb://mongo:27017
-      - General__ApiSecretToken=my-secret-token
-      - Storage__ServiceUrl=http://rustfs:9000
-```
+### Backend App
+Controls the Real-time Audio processing and AI Orchestration.
+
+| Block | Key | Description |
+| :--- | :--- | :--- |
+| `Server` | `Id` | **Unique UUID.** Must match the Server ID registered in [Admin Dashboard](/developers/admin/infrastructure). |
+| `Server` | `RegionId` | The geographic region code (e.g., `OM-MCT`) this Backend serves. |
+| `Server` | `ApiKey` | A secret token used to authenticate internal API calls services. Must match the server api key registered in [Admin Dashboard](/developers/admin/infrastructure). |
+| `Server` | `ExpectedMaxConcurrentCalls` | **Hard Limit.** The maximum number of active calls this node will accept before rejecting new connections. |
+| `Server` | `WebhookTokenSecret` | Secret used to verify signatures of internal webhooks. |
+| `LocalRedisDatabase` | `Endpoint` | Connection to a *local* (localhost) Redis on the Backend node. |
+| `LocalRedisDatabase` | `Password` | Password for Redis on the Backend node. |
+
+### Background Processor
+Controls maintenance jobs and cleanup.
+
+| Block | Key | Description |
+| :--- | :--- | :--- |
+| `Milvus` | `ExpiryCheckIntervalSeconds` | How often to scan for stale vector collections to free up memory. |
+| `Milvus` | `CollectionStaleTimeoutMinutes` | How long a vector collection remains in memory before being unloaded. |
+| `Security` | `ApiKey` | A secret token used to authenticate internal API calls services. Must match the server api key registered in [Admin Dashboard](/developers/admin/infrastructure). |

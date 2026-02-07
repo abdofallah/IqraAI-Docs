@@ -1,0 +1,105 @@
+---
+title: AI Services Registry
+description: Configuring models, pricing, and schema fields for LLM, TTS, STT, and Knowledge providers.
+---
+
+import { Cpu, Mic, Speaker, Database, AlertTriangle, Settings, Coins } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **Service Registry** manages the AI engines available to your users. It covers five core categories:
+
+*   <Cpu className="w-4 h-4 inline"/> **LLM:** Large Language Models (OpenAI, Anthropic).
+*   <Speaker className="w-4 h-4 inline"/> **TTS:** Text-to-Speech (ElevenLabs, Azure).
+*   <Mic className="w-4 h-4 inline"/> **STT:** Speech-to-Text (Deepgram, Whisper).
+*   <Database className="w-4 h-4 inline"/> **Embedding:** Vectorization models.
+*   **Rerank:** Search optimization models.
+
+## How it Works
+
+Iqra AI uses a **Code-First Discovery** system.
+1.  **Discovery:** On startup, the backend scans for C# classes implementing the service interfaces (e.g., `ILLMService`, `ITTSService`).
+2.  **Registration:** It automatically registers these services in the database.
+3.  **Configuration:** You (the Admin) log in to this dashboard to define the **Models** and **Input Fields** exposed to the user.
+
+---
+
+## 1. General Configuration
+
+Click on any service row to edit it.
+
+*   **Identifier:** Read-only system ID (matches the C# Enum).
+*   **Integration:** Links this service to an **[Integration Type](/developers/admin/integrations)**.
+    *   *Example:* The `OpenAIGPT` service uses the `OpenAI` Integration credential.
+*   **Disabled:** Hides this provider from the Agent Studio globally.
+
+---
+
+## 2. Model Management
+
+Providers frequently release new models (e.g., `gpt-4o`, `eleven_turbo_v2_5`). You must add them here manually to make them available.
+
+Navigate to the **Models** tab.
+
+### Configuring a Model
+*   **Identifier:** The exact API string required by the provider (e.g., `gpt-4-turbo`).
+*   **Name:** Friendly display name (e.g., "GPT-4 Turbo").
+*   **Pricing:**
+    *   **Input/Output Cost:** Define the cost per unit (1M tokens for LLM, 1k chars for TTS, 1 min for STT).
+    *   *Usage:* The system uses this to calculate the "Cost" displayed in conversation logs.
+*   **Token Limits (LLM Only):** Context window size.
+
+---
+
+## 3. Integration Fields (Critical)
+
+Navigate to the **Integration Fields** tab. This defines the **Configuration Form** users see in the **Agent Studio**.
+
+<Callout type="error" title="The C# Contract">
+  These fields map directly to the backend code. 
+  
+  **Do NOT change the `Field ID`** unless you have modified the corresponding C# Service class.
+  
+  If the code expects `GetString("model")` and you rename the field to `model_id`, **the agent will crash.**
+</Callout>
+
+### Field Types
+
+| Type | Description |
+| :--- | :--- |
+| **Models** | Renders a dropdown of the models defined in the **Models** tab. |
+| **Text** | Simple string input (e.g., `endpoint`). |
+| **Number** | Numeric input (e.g., `temperature`). |
+| **Boolean** | Toggle switch. |
+| **Select** | Static dropdown (You define options like `pcm` vs `opus`). |
+
+### Example: TTS Configuration
+For a TTS provider, you typically define:
+1.  **Field:** `model` (Type: `Models`).
+2.  **Field:** `voice` (Type: `Voices` - *Special type that fetches from provider API*).
+3.  **Field:** `speed` (Type: `Number`, Default: `1.0`).
+
+---
+
+## Adding a New Model (Walkthrough)
+
+**Scenario:** Anthropic releases `Claude 3.5 Sonnet`.
+
+<Steps>
+<Step>
+### Open Service
+Go to **LLM Provider** -> **AnthropicClaude**.
+</Step>
+
+<Step>
+### Add Model
+Go to **Models** -> **Add New Model**.
+*   **ID:** `claude-3-5-sonnet-20240620`.
+*   **Name:** `Claude 3.5 Sonnet`.
+*   **Cost:** Set Input/Output price per million tokens.
+</Step>
+
+<Step>
+### Verify
+Go to any **Agent** in a workspace. Select **Anthropic**. The new model is now available in the dropdown.
+</Step>
+</Steps>

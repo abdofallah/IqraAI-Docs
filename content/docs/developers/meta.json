@@ -1,6 +1,13 @@
 {
     "title": "Developers",
     "icon": "Terminal",
-    "description": "API Reference, SDKs, and Self-Hosting",
-    "root": true
+    "root": true,
+    "pages": [
+        "index",
+        "architecture",
+        "self-hosting",
+        "admin",
+        "flowapp",
+        "sdks"
+    ]
 }

@@ -1,0 +1,12 @@
+{
+    "title": "Admin Dashboard",
+    "pages": [
+        "index",
+        "infrastructure",
+        "settings",
+        "governance",
+        "integrations",
+        "services",
+        "languages"
+    ]
+}

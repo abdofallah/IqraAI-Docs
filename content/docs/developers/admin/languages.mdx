@@ -1,0 +1,111 @@
+---
+title: Languages & Prompts
+description: Managing localization, system prompts, and the core instruction set for the AI.
+---
+
+import { Globe, Terminal, Braces, AlertTriangle, MessageSquare, Shield, Database, BarChart3 } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Iqra AI is a **Native Polyglot** system. Instead of translating on the fly, we load a completely different "Brain" (System Prompt + Tools) for each language.
+
+The **Languages Tab** allows you to:
+1.  Enable new locales (e.g., `es-ES`, `fr-FR`).
+2.  **Edit the Core Prompts** that govern how the AI behaves, executes tools, and handles interruptions.
+
+<Callout type="error" title="Advanced Territory">
+  Editing System Prompts is dangerous. These prompts contain strict **Response Formats** that the C# backend relies on to parse actions (like ending a call or triggering a tool).
+  
+  **If you break the format, the agent will break.**
+</Callout>
+
+---
+
+## 1. Managing Languages
+
+Navigate to **Languages** -> **List**.
+
+### Adding a Language
+1.  Click **Add New Language**.
+2.  **Identifier:** The ISO code (e.g., `ar` or `ar-EG`).
+3.  **Name:** Display name (e.g., "Arabic (Egypt)").
+4.  **Status:** Active/Disabled.
+
+Once added, this language becomes available in the **Business Dashboard** for users to configure agents.
+
+---
+
+## 2. System Prompts
+
+Click on a language (e.g., **English**) -> **Prompts Tab**.
+
+You will see several categories of prompts. Each plays a specific role in the pipeline.
+
+### A. Core Conversation
+The main driver of the agent.
+
+*   **Warmup Prompt:** A hidden "Handshake" message sent to the LLM to initialize the context window before the user speaks.
+*   **Base System Prompt:** The personality and instruction set.
+    *   *Role:* "You are &lbrace;&lbrace;Agent.Name&rbrace;&rbrace;..."
+    *   *Capabilities:* Injects tools and knowledge.
+*   **Failed Generation Fallback:** A safety net message spoken if the LLM crashes or returns invalid JSON.
+
+### B. Verification
+Used by the **Interruption Engine**.
+*   **Turn-End Detection:** Analyzes user speech to decide if they finished talking.
+*   **Interruption Logic:** Analyzes if a user's noise is a valid interruption or just a "backchannel" (e.g., "Uh-huh").
+*   **Voicemail Detection:** Analyzes the first few seconds of audio to detect answering machines.
+
+### C. Knowledge Base
+*   **Query Classifier:** Decides "Should I search the database for this question?" (YES/NO).
+*   **Query Refinement:** Rewrites vague user questions into precise search queries.
+
+### D. Post Analysis
+*   **Summary Generation:** Summarizes the call.
+*   **Tag Classification:** Applies tags based on the conversation.
+*   **Data Extraction:** Extracts JSON data from the transcript.
+
+---
+
+## 3. The Anatomy of a Prompt
+
+Iqra AI uses **[Scriban Templating](/build/script/templating)** to inject dynamic context into these prompts.
+
+<Callout type="warn" title="Do Not Remove Logic Blocks">
+  You will see code blocks like `{{~ if Agent.HasSendSMSTool ~}}`. These are **Logic Gates**. They ensure the AI only knows about SMS capabilities if the user has actually enabled SMS for that agent. Removing them will cause hallucinations (AI trying to send SMS when it can't).
+</Callout>
+
+### The Response Format (Critical)
+At the bottom of the **Base System Prompt**, you will see a strict definition of how the AI must reply.
+
+```text
+Here is the format you follow when responding:
+response_to_customer: <text>
+
+Here is the format when ending a call:
+execute_system_function: end_call: <reason>, <message>, <node_id>
+```
+
+**Why is this here?**
+Standard LLMs return free text. Our C# backend needs to know *exactly* when the AI wants to run code. We parse these prefixes (`execute_system_function:`) to trigger the actual C# logic.
+
+**Modification Rules:**
+*   ✅ **Translate:** You can translate the descriptions/instructions into Arabic/Spanish.
+*   ❌ **Do Not Change Keywords:** Do NOT translate `execute_system_function`, `response_to_customer`, or function names like `end_call`. The C# parser expects these exact English strings.
+
+### Example: Translating to Arabic
+
+**Original (English):**
+```text
+You are {{Agent.Name}}. A customer support agent for...
+```
+
+**Valid Translation (Arabic):**
+```text
+انت {{Agent.Name}}. موظف خدمة عملاء لشركة...
+```
+
+**Invalid Translation (Breaks System):**
+```text
+// ❌ WRONG: Translated the function name
+نفذ_وظيفة_النظام: إنهاء_المكالمة
+```

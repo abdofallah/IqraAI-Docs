@@ -1,0 +1,46 @@
+---
+title: Users & Businesses
+description: Managing tenants, impersonating users for support, and overseeing workspaces.
+---
+
+import { Users, Building2, Eye, ShieldAlert, Key, UserCheck } from 'lucide-react';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The **Governance** modules allow you to manage the humans and workspaces on your platform. This is your primary tool for providing **Customer Support** and enforcing **Terms of Service**.
+
+## User Management
+
+Navigate to **Users** in the sidebar. This lists every account registered on the platform.
+
+### User Details
+Clicking on a user row opens their profile. You can:
+*   **General:** Edit Name, Email, or manually reset their **Password**.
+*   **Businesses:** View which workspaces this user belongs to.
+*   **Permissions:** (Advanced) Grant specific system-level roles.
+
+### Actions & Support
+In the **Actions** column (or tab), you have powerful tools for debugging.
+
+*   **Send Reset Password:**
+    *   Forces user to change their password and sends an email to reset their password.
+---
+
+## Business Management
+
+Navigate to **Businesses** in the sidebar. This lists every Workspace container created on the platform.
+
+### Master User Assignment
+Every Business has a **Master User** (The Owner).
+*   **Scenario:** An employee created the business but left the company. The CEO needs access.
+*   **Action:** Edit the Business -> Change **Master Email** to the new owner.
+
+### Inspection
+You can view the internal configuration of a business without logging in as the user.
+*   **Numbers:** See what phone numbers are attached.
+*   **Routing:** Check if they have valid routes configured.
+*   **Agents:** View the list of agents (useful for debugging "Zero Agent" errors).
+
+### Deletion
+You can forcefully **Delete** a business.
+*   **Effect:** Permanently wipes all Agents, Scripts, Logs, and Data associated with that workspace.
+*   **Warning:** This cannot be undone.

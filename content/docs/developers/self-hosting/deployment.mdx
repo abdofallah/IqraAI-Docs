@@ -1,110 +1,167 @@
 ---
 title: Application Deployment
-description: Running the Frontend and Proxy via Docker, and the Backend via Native Service.
+description: Manual deployment of Iqra AI binaries as Systemd Services with Nginx/SSL.
 ---
 
-import { Container, Server, Globe, ShieldCheck, Terminal } from 'lucide-react';
+import { Server, Terminal, ShieldAlert, Network, Play, PauseCircle, FileText } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-Iqra AI uses a **Hybrid Deployment** strategy.
+For production environments, we recommend a **Manual Binary Deployment** managed by **Systemd** (Linux) or **Windows Services**.
 
-1.  **Docker Cluster:** Frontend, Proxy, and Background Processor. These are stateless web services that scale easily in containers.
-2.  **Native Node:** Backend App. This runs directly on the host OS (Windows/Linux) to maximize audio performance and manage UDP port ranges without NAT overhead.
+**Why?**
+1.  **Process Control:** We rely on OS-level signals (`SIGINT`) for **Graceful Shutdowns**. If you restart a server, the app will stop accepting *new* calls but keep *active* calls alive until they finish. Docker often kills processes too aggressively.
+2.  **Audio Latency:** Running natively ensures RTP packets reach the kernel immediately without NAT overhead.
 
 ---
 
-## Part 1: The Docker Cluster (Web Services)
+## 1. Getting the Artifacts
 
-We will use `docker-compose` to spin up the management layer.
+Download the latest `.zip` release from our [GitHub repository](https://github.com/abdofallah/IqraAI/releases) or build from source.
+
+*   `iqra-frontend-linux-x64.zip`
+*   `iqra-proxy-linux-x64.zip`
+*   `iqra-backend-linux-x64.zip`
+*   `iqra-background-linux-x64.zip`
+
+**Recommended Directory Structure:**
+```text
+/opt/iqra/
+  ├── frontend/
+  ├── proxy/
+  ├── backend/
+  └── background/
+```
+
+---
+
+## 2. Deployment Order (Critical)
+
+You cannot simply turn everything on at once. The system has a strict dependency chain.
+
+```mermaid
+graph TD
+    DB[(Data Layer)] --> Front[1. Frontend App]
+    Front --> Init[2. System Initialization]
+    Init --> Nodes[3. Backend / Proxy / Background]
+    
+    style Front fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
+    style Init fill:#f59e0b,stroke:#333,stroke-width:2px,color:#fff
+    style Nodes fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+```
+
+1.  **Frontend:** Must run first to seed the database and create the Admin account.
+2.  **Initialization:** You must log in and register the server topology.
+3.  **Workers:** Only then can the Backend and Proxy start (they check the registry on boot).
+
+---
+
+## Step 1: Deploy Frontend
 
 <Steps>
 <Step>
-### Prepare Compose File
-Create a file named `apps.docker-compose.yml`.
+### Install & Configure
+Extract the binary to `/opt/iqra/frontend`. Edit `appsettings.json` to point to your Data Layer.
+</Step>
 
-```yaml
-version: '3.5'
+<Step>
+### Create Service
+Create `/etc/systemd/system/iqra-frontend.service`.
 
-services:
-  # -----------------------------
-  # 1. The Dashboard (Frontend)
-  # -----------------------------
-  frontend:
-    image: ghcr.io/abdofallah/iqra-frontend:latest
-    ports:
-      - "80:80"
-    environment:
-      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
-      - General__ApiSecretToken=my-secret-token
-    depends_on:
-      - mongodb # Assumes you are on the same network
+```ini
+[Unit]
+Description=Iqra AI Frontend
+After=network.target
 
-  # -----------------------------
-  # 2. The Gateway (Proxy)
-  # -----------------------------
-  proxy:
-    image: ghcr.io/abdofallah/iqra-proxy:latest
-    ports:
-      - "8080:80"
-    environment:
-      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
-      - General__ApiSecretToken=my-secret-token
+[Service]
+WorkingDirectory=/opt/iqra/frontend
+ExecStart=/opt/iqra/frontend/ProjectIqraFrontend
+Restart=always
+RestartSec=10
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://localhost:5000
 
-  # -----------------------------
-  # 3. The Janitor (Background)
-  # -----------------------------
-  background:
-    image: ghcr.io/abdofallah/iqra-background:latest
-    environment:
-      - ConnectionStrings__MongoDB=mongodb://admin:password123@mongo:27017
+[Install]
+WantedBy=multi-user.target
 ```
 </Step>
 
 <Step>
-### Launch
+### Start Service
 ```bash
-docker-compose -f apps.docker-compose.yml up -d
+sudo systemctl enable --now iqra-frontend
 ```
-Your dashboard should now be accessible at `http://localhost`.
 </Step>
 </Steps>
 
 ---
 
-## Part 2: The Backend Node (Native)
+## Step 2: Reverse Proxy (SSL)
 
-The Backend App requires raw access to the network interface for RTP Audio (UDP Ports 10000-20000). We will run this as a native service.
+We recommend running **all services** behind Nginx to handle SSL and WebSockets securely.
 
-### Prerequisites
-*   **Operating System:** Ubuntu 22.04 LTS (Recommended) or Windows Server.
-*   **Runtime:** [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+```nginx title="/etc/nginx/sites-available/iqra"
+# 1. Frontend (Dashboard)
+server {
+    listen 443 ssl http2;
+    server_name app.your-domain.com;
+    # ... SSL Params ...
 
-<Steps>
-<Step>
-### Publish Artifacts
-Clone the repository and build the backend project in Release mode.
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
 
-```bash
-git clone https://github.com/abdofallah/IqraAI.git
-cd IqraAI/ProjectIqraBackendApp
-dotnet publish -c Release -o /opt/iqra-backend
+# 2. Proxy App (Telephony Webhooks)
+server {
+    listen 443 ssl http2;
+    server_name proxy.your-domain.com;
+    # ... SSL Params ...
+
+    location / {
+        proxy_pass http://localhost:5001;
+    }
+}
 ```
-</Step>
 
-<Step>
-### Configure
-Navigate to the output directory and edit `appsettings.json`.
+---
 
-```bash
-cd /opt/iqra-backend
-nano appsettings.json
-```
-Ensure the `ConnectionStrings` point to your database (if DB is in Docker, use `localhost` or the Docker Host IP).
-</Step>
+## 🛑 Step 3: The Critical Pause
 
-<Step>
-### Systemd Service (Linux)
-Create a service file to keep the app running in the background.
+<Callout type="error" title="STOP HERE">
+  **Do not deploy the Backend, Proxy, or Background apps yet.**
+  
+  They will crash immediately because they are not registered in the database.
+  
+  1.  Start the **Frontend** service.
+  2.  Go to the **[Initialization Guide](/developers/self-hosting/initialization)**.
+  3.  Create your Admin Account and Register your Infrastructure.
+  4.  Come back here once you have generated the **Region Server IDs, ApiKey**.
+</Callout>
+
+---
+
+## Step 4: Deploy Worker Nodes
+
+For **Proxy**, **Backend**, and **Background**, follow the same installation pattern as the Frontend, but with specific configurations.
+
+### Configuration Checklist
+Ensure `appsettings.json` matches the values you just generated in the Admin Dashboard.
+
+| Setting | Requirement |
+| :--- | :--- |
+| `Id` | **Must Match** the UUID generated in Admin Dashboard. |
+| `RegionId` | **Must Match** the Region Identifier (e.g., `OM-MCT`). |
+| `ApiKey` | **Must Match** the server Secret Key. |
+
+### Service Templates (Systemd)
+
+Use this template for Proxy, Backend, and Background. Just change the `Description`, `WorkingDirectory`, `ExecStart`, and `Port`.
 
 ```ini title="/etc/systemd/system/iqra-backend.service"
 [Unit]
@@ -112,68 +169,45 @@ Description=Iqra AI Backend
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/iqra-backend
-ExecStart=/usr/bin/dotnet /opt/iqra-backend/ProjectIqraBackendApp.dll
+WorkingDirectory=/opt/iqra/backend
+ExecStart=/opt/iqra/backend/ProjectIqraBackendApp
 Restart=always
-# Restart service after 10 seconds if the dotnet service crashes:
 RestartSec=10
+
+# Graceful Shutdown Logic
+# 1. Send SIGINT (App stops accepting new calls)
 KillSignal=SIGINT
-SyslogIdentifier=iqra-backend
+# 2. Wait 10 Minutes for active calls to finish
+TimeoutStopSec=600
+
 User=root
 Environment=ASPNETCORE_ENVIRONMENT=Production
+# Use different internal ports for each app (e.g. 5002 for Backend)
+Environment=ASPNETCORE_URLS=http://localhost:5002
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Enable and start it:
-```bash
-sudo systemctl enable iqra-backend
-sudo systemctl start iqra-backend
-```
-</Step>
-
-<Step>
-### Firewall Rules
-You must open the ports for **SIP/RTP** traffic.
-
-```bash
-# Allow internal API communication
-sudo ufw allow 5000/tcp
-
-# Critical: Allow Audio Media Range (UDP)
-sudo ufw allow 10000:20000/udp
-```
-</Step>
-</Steps>
+**Port Mapping Recommendation:**
+*   **Frontend:** `5000`
+*   **Proxy:** `5001`
+*   **Backend:** `5002`
+*   **Background:** `5003`
 
 ---
 
-## Part 3: Reverse Proxy (SSL)
+## Firewall Rules
 
-For **WebRTC** to work (Web Campaigns), the browser **requires HTTPS**. You cannot use HTTP.
+You must open ports for external traffic.
 
-We recommend using **Nginx** as a reverse proxy in front of the Frontend.
+| Service | Protocol | Port | Description |
+| :--- | :--- | :--- | :--- |
+| **Nginx** | TCP | `443` | All HTTPS traffic (Dashboard, Webhooks, WebSockets). |
+| **Proxy** | UDP/TCP | `5060`* | **SIP Signaling.** *Defined in Admin Dashboard.* |
+| **Backend** | UDP/TCP | `5080`* | **SIP Signaling.** *Defined in Admin Dashboard.* |
+| **Backend** | UDP | `10000-20000` | **RTP Media.** Critical for audio. Must be open to 0.0.0.0/0. |
 
-```nginx title="/etc/nginx/sites-available/iqra"
-server {
-    listen 443 ssl;
-    server_name app.your-domain.com;
-
-    ssl_certificate /etc/letsencrypt/live/app.your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/app.your-domain.com/privkey.pem;
-
-    location / {
-        proxy_pass http://localhost:80; # Points to Frontend Docker Container
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-<Callout type="tip" title="Cloudflare">
-  If you use Cloudflare, enable **WebSockets** in the Network settings panel to ensure real-time audio flows correctly.
+<Callout type="warn" title="SIP Ports">
+  The SIP ports (5060/5080) are configured inside the **Admin Dashboard** when you register the server. Ensure your firewall allows traffic on whatever port you choose there.
 </Callout>

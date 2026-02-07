@@ -1,0 +1,9 @@
+{
+    "title": "FlowApps Development",
+    "pages": [
+        "index",
+        "create-app",
+        "create-action",
+        "data-fetchers"
+    ]
+}

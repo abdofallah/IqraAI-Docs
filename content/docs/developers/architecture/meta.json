@@ -1,0 +1,8 @@
+{
+    "title": "Architecture",
+    "pages": [
+        "system-design",
+        "data-flow",
+        "storage"
+    ]
+}

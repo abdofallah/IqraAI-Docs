@@ -1,0 +1,57 @@
+---
+title: App & Settings
+description: Configuring global permissions, maintenance mode, and system email templates.
+---
+
+import { ShieldAlert, Mail, Lock, UserX, AlertTriangle } from 'lucide-react';
+
+The **App** tab allows you to control the global behavior of the Iqra AI platform. This is where you manage access policies and communication standards.
+
+## Global Permissions
+
+These are the "Circuit Breakers" for your platform. Changes here take effect immediately across all users and regions.
+
+### 1. Maintenance Mode
+<Callout type="error" title="Critical Switch">
+  Enabling **Maintenance Mode** effectively shuts down the platform for end-users.
+</Callout>
+
+*   **Effect:**
+    *   **Dashboard:** Non-admin users cannot log in. They see a "Under Maintenance" screen.
+    *   **Traffic:** The Proxy stops accepting *new* Inbound/Outbound calls.
+    *   **Admins:** You can still log in to the Admin Dashboard to perform updates.
+*   **Use Case:** Database migrations, version upgrades, or emergency patching.
+
+### 2. Disable Registration
+*   **Effect:** The `/register` page button is disabled. Users cannot create new accounts.
+*   **Use Case:** Running a **Private Instance** (Invite-only).
+*   **Note:** Existing users can still log in.
+
+### 3. Disable Login
+*   **Effect:** Prevents users from logging into their dashboards. Active sessions may persist until token expiry.
+*   **Use Case:** Security freeze or investigating a platform-wide breach.
+
+---
+
+## Email Templates
+
+Iqra AI sends transactional emails for account security. You can fully customize the branding and HTML structure of these emails.
+
+Navigate to **App** -> **Email Templates**.
+
+### Supported Templates
+1.  **Verify Email:** Sent upon registration. Contains the activation link.
+2.  **Welcome User:** Sent after successful verification.
+3.  **Reset Password:** Sent when a user requests a password recovery.
+
+### The Editor
+We provide a raw **HTML Editor**. You can paste your own responsive email design (e.g., from MJML or Mailchimp export).
+
+**Variables:**
+You can inject dynamic data using the variable syntax shown below the editor.
+
+| Template | Variable | Description |
+| :--- | :--- | :--- |
+| **Verify Email** | `{{VERIFY_URL}}` | The unique, time-sensitive verify link the user must click. |
+| **Welcome User** | `{{USER_NAME}}` | The user's display name. |
+| **Reset Password** | `{{RESET_URL}}` | The unique, time-sensitive reset link the user must click. |

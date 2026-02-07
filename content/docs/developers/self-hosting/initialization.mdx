@@ -1,95 +1,104 @@
 ---
 title: System Initialization
-description: First-time setup, registering infrastructure, and seeding the service registry.
+description: Running the Installation Wizard, configuring telemetry, and registering the cluster topology.
 ---
 
-import { Play, Shield, Server, Plug, CheckCircle2 } from 'lucide-react';
+import { Play, Shield, Server, Plug, CheckCircle2, Activity, AlertTriangle } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-Congratulations! Your containers are running and your backend service is active. However, the platform is currently a "Blank Slate".
+Once the **Frontend** service is running, the platform enters "Install Mode." You must complete this wizard to seed the database and create your root administrator account.
 
-You must now log in to the **Admin Dashboard** to tell the system about your infrastructure topology and available AI services.
+## 1. The Installation Wizard
 
-## 1. Accessing the Admin Panel
-
-Navigate to your frontend URL (e.g., `http://localhost` or `https://app.your-domain.com`).
-
-1.  Click **Login**.
-2.  Use the **Default Admin Credentials** defined in your `IqraFrontend/appsettings.json`.
-
-```json
-"Admin": {
-  "DefaultEmail": "admin@localhost.com",
-  "DefaultPassword": "AdminPassword123!"
-}
-```
-
-<Callout type="error" title="Security Risk">
-  **Change your password immediately** after the first login via the Profile settings.
-</Callout>
-
----
-
-## 2. Registering Infrastructure
-
-The database needs to know where your servers are running so it can route calls.
+Navigate to your frontend URL (e.g., `http://localhost` or `https://app.your-domain.com`). You will be redirected to `/install`.
 
 <Steps>
 <Step>
-### Create a Region
-1.  Go to **Admin Dashboard** -> **Infrastructure** -> **Regions**.
-2.  Click **Add Region**.
-3.  **Name:** `Default Region`.
-4.  **Identifier:** `us-east-1` (or your preferred code).
+### Admin Account
+Create the **Root Administrator**.
+*   **Email:** This will be used for system alerts.
+*   **Password:** Set a strong password.
 </Step>
 
 <Step>
-### Register Proxy
-1.  Select the Region.
-2.  Add Server -> **Type: Proxy**.
-3.  **URL:** The internal docker address (e.g., `http://proxy:8080`) or public URL.
-4.  **Secret:** Paste the `ApiSecretToken` you set in `appsettings.json`.
+### Telemetry Settings
+We believe in transparency.
+
+*   **Core Telemetry (Mandatory):** We collect your App Version and Admin Contact email. This allows us to notify you of critical security patches.
+*   **Usage Telemetry (Optional):** You can opt-in to share aggregated stats (e.g., "Total Calls Processed", "Hardware Specs").
+    *   *Privacy:* No PII (Personally Identifiable Information) or conversation content is ever sent.
 </Step>
 
 <Step>
-### Register Backend
-1.  Add Server -> **Type: Backend**.
-2.  **URL:** The address of your native backend service (e.g., `http://10.0.0.5:5000`).
-3.  **Secret:** Paste the `ApiSecretToken`.
+### Automatic Seeding
+Upon clicking **Install**, the system will populate the database with:
+*   Default **Integration Types** (OpenAI, Twilio, etc.).
+*   Default **Services** (LLM, TTS, STT definitions).
+*   Default **Languages** list.
 </Step>
 </Steps>
 
 ---
 
-## 3. Seeding the Service Registry
+## 2. Registering Infrastructure
 
-The platform supports "OpenAI", but the database doesn't know that yet. You must map the C# Classes to UI Definitions.
+Now that you are logged in, go to the **Admin Dashboard** (`/admin`). You need to tell the database where your worker nodes are running.
 
-<Callout type="info" title="Automatic Sync (Coming Soon)">
-  In future updates, we will provide an "Install Wizard" that syncs the latest service definitions from the Iqra Cloud repository automatically. For now, this is a manual process.
+<Callout type="info" title="Deep Dive">
+  For a detailed explanation of the topology fields, see the **[Admin Infrastructure Guide](/developers/admin/infrastructure)**.
 </Callout>
 
-### Example: Adding OpenAI Support
+<Steps>
+<Step>
+### Create Region
+1.  Navigate to **Infrastructure** -> **Regions**.
+2.  Click **Add Region**.
+3.  **Name:** `Default Region` (or `US-East`).
+4.  **Identifier:** `us-east-1` (Used for routing logic).
+</Step>
 
-1.  Navigate to **Admin Dashboard** -> **Integrations**.
-2.  Create a new Integration Type:
-    *   **Name:** `OpenAI`
-    *   **Tags:** `LLM`, `TTS`
-    *   **Config Schema:** `{"ApiKey": "text"}`
-3.  Navigate to **Services**.
-4.  Create a new Service:
-    *   **Name:** `OpenAI GPT`
-    *   **Type:** `LLM`
-    *   **Service Key:** `OpenAILLMService` (**Critical:** Must match C# Class Name exactly).
-    *   **Link Integration:** Select `OpenAI`.
+<Step>
+### Register Proxy & Backend
+Inside the Region view:
 
-Repeat this for every provider you wish to support (ElevenLabs, Deepgram, Twilio, etc.).
+1.  **Add Proxy:**
+    *   **Endpoint:** The URL (e.g., `https://proxy.your-domain.com`). Toggle **SSL** if using HTTPS.
+    *   **SIP Port:** Define the port (Default: `5060`).
+    *   **Generate:** The system will create a **Server ID** and **API Key**. *Save these.*
+2.  **Add Backend:**
+    *   **Endpoint:** The URL (e.g., `http://10.0.0.5:5002`).
+    *   **SIP Port:** Define the port (Default: `5080`).
+    *   **Generate:** Save the **Server ID** and **API Key**.
+</Step>
+
+<Step>
+### Register Background Node
+Navigate to the **Background Node** tab (Top level of Infrastructure).
+
+1.  **Endpoint:** The internal URL (e.g., `http://background:80`).
+2.  **Generate:** Save the **API Key**.
+</Step>
+</Steps>
+
+---
+
+## 🛑 3. Complete Deployment
+
+You now have the **Server IDs** and **API Keys** required by your worker nodes.
+
+<Callout type="error" title="Action Required">
+  **Go back to your terminal.**
+  
+  1.  Return to the **[Application Deployment](/developers/self-hosting/deployment#step-4-deploy-worker-nodes)** guide (Step 4).
+  2.  Update the `appsettings.json` (or Environment Variables) for your Proxy, Backend, and Background apps with the IDs/Keys you just generated.
+  3.  **Start the services.**
+</Callout>
 
 ---
 
 ## 4. Verification
 
-To verify the entire stack is operational:
+Once all services are running and green:
 
 1.  **Create User:** Go to the User Dashboard and sign up a new standard user.
 2.  **Create Business:** Create a workspace.

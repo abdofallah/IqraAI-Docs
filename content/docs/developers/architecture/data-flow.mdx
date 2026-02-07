@@ -1,16 +1,17 @@
 ---
 title: Data Flow
-description: Tracing the lifecycle of Inbound Calls, Web Sessions, and the internal Audio Processing Loop.
+description: Tracing the network lifecycle of Inbound, Outbound, and Web conversations.
 ---
 
-import { Network, Server, ArrowDown, Activity, Globe, PhoneIncoming } from 'lucide-react';
+import { Network, Server, ArrowDown, Activity, Globe, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-Understanding how data moves through the Iqra AI cluster is essential for debugging latency and configuring firewalls. The flow differs depending on whether the conversation is via **Telephony** (PSTN/SIP) or the **Web** (WebRTC/WebSocket).
+Understanding how data moves through the Iqra AI cluster is essential for debugging latency, configuring firewalls, and understanding the role of the **Proxy** vs. the **Backend**.
 
-## Scenario A: Inbound Telephony Call
+## Scenario A: Inbound Telephony
+**"The Router"**
 
-This flow is used when a human calls a phone number connected to Twilio, Telnyx, or a SIP Trunk.
+This flow triggers when a human calls a phone number connected to your platform. The Carrier asks the Proxy where to send the audio.
 
 ```mermaid
 sequenceDiagram
@@ -20,11 +21,11 @@ sequenceDiagram
     participant Backend as IqraBackendApp
 
     Note over Carrier, Proxy: 1. Signaling
-    Carrier->>Proxy: HTTP POST /webhook/incoming (Call Invite)
+    Carrier->>Proxy: HTTP POST /webhook/incoming
     
     Note over Proxy, DB: 2. Routing Logic
     Proxy->>DB: Lookup Phone Number
-    DB-->>Proxy: Return Business, Region, & Inbound Route
+    DB-->>Proxy: Return Business, Region, & Route
     
     Note over Proxy: 3. Load Balancing
     Proxy->>Proxy: ServerSelectionManager.GetBestServer(Region)
@@ -32,78 +33,81 @@ sequenceDiagram
     Note over Proxy, Backend: 4. Handoff
     Proxy->>Backend: POST /internal/allocate-call
     Backend-->>Proxy: OK (Ready to accept)
-    Proxy-->>Carrier: TwiML/XML "Connect to wss://backend-url"
+    Proxy-->>Carrier: Return TwiML/XML <Connect wss://backend... />
     
-    Note over Carrier, Backend: 5. Media Stream (RTP/WebSocket)
-    Carrier->>Backend: Open Audio Stream
+    Note over Carrier, Backend: 5. Media Stream
+    Carrier->>Backend: Open WebSocket/RTP Stream
     Backend->>Carrier: Send Audio Stream
 ```
 
-### The Role of the Proxy
-The **Proxy** does not touch the audio. It acts as the **Dispatcher**.
-1.  **Region Check:** It sees the number is assigned to `us-east`.
-2.  **Load Balancing:** It checks Redis to find a `us-east` Backend server with low CPU/Concurrency usage.
-3.  **Security:** It validates the carrier's signature to ensure the request is legitimate.
-
 ---
 
-## Scenario B: Web Session
+## Scenario B: Outbound Telephony
+**"The Dispatcher"**
 
-This flow is used when a browser or mobile app initiates a session via the SDK. It bypasses the Proxy because the Frontend API handles the initial authentication.
+This flow triggers when you launch a call via API or the Dashboard. It involves an asynchronous queue system.
 
 ```mermaid
-graph LR
-    Client[Browser SDK] -->|1. Auth Request| Front[IqraFrontend]
-    Front -->|2. Validate & Load Balance| Redis[(Redis)]
-    Front -->|3. Return Backend URL| Client
-    Client -->|4. WebSocket Connection| Back[IqraBackendApp]
+sequenceDiagram
+    participant User as API / Dashboard
+    participant DB as MongoDB (Queue)
+    participant Proxy as IqraProxyApp (Dispatcher)
+    participant Carrier as Twilio/Telnyx
+    participant Backend as IqraBackendApp
+
+    Note over User, DB: 1. Enqueue
+    User->>DB: Insert Call Queue Item
     
-    style Front fill:#2563eb,stroke:#333,stroke-width:2px,color:#fff
-    style Back fill:#16a34a,stroke:#333,stroke-width:2px,color:#fff
+    Note over Proxy, DB: 2. Polling & Dispatch
+    Proxy->>DB: Poll Pending Items (Per Region)
+    DB-->>Proxy: Return Job
+    
+    Note over Proxy, Backend: 3. Reservation
+    Proxy->>Backend: POST /internal/allocate-outbound
+    Backend-->>Proxy: OK (Waiting for connection)
+    
+    Note over Proxy, Carrier: 4. Dialing
+    Proxy->>Carrier: REST API (Initiate Call to +123...)
+    Note right of Proxy: Url = wss://backend-ip/ws
+    
+    Note over Carrier, Backend: 5. Connection
+    Carrier->>Backend: Call Connected -> Handshake
+    Backend->>Carrier: Agent Greeting Audio
 ```
+
+*   **Why the Proxy dials?** The Proxy manages the global rate limits (CPS) and concurrency for the Business before the heavy Backend server is involved.
 
 ---
 
-## The Audio Processing Loop
+## Scenario C: Web Session (WebRTC)
+**"The Direct Line"**
 
-Once the connection (Telephony or Web) is established to the **IqraBackendApp**, the system enters the real-time processing loop. This happens continuously for the duration of the conversation.
+This flow bypasses the Telephony Proxy entirely. The Frontend API acts as the gatekeeper, handing a "Ticket" (Signed URL) to the browser to connect directly to the brain.
 
-This logic lives inside `ConversationAIAgent.cs` and its sub-components.
+```mermaid
+sequenceDiagram
+    participant Client as Browser SDK
+    participant Front as IqraFrontend
+    participant Redis as Redis
+    participant Backend as IqraBackendApp
 
-<Steps>
-<Step>
-### Ingress (Audio Input)
-Raw audio packets arrive via WebSocket or RTP.
-*   **Buffer:** Audio is collected into a jitter buffer.
-*   **VAD (Voice Activity Detection):** `ConversationAIAgentTurnAndInterruptionManager` analyzes the stream volume and energy.
-    *   *If Silence:* Do nothing.
-    *   *If Voice:* Send to STT.
-</Step>
+    Note over Client, Front: 1. Authentication
+    Client->>Front: POST /api/session/init (Auth Token)
+    
+    Note over Front, Redis: 2. Load Balancing
+    Front->>Redis: Check Concurrency Limit
+    Front->>Redis: Get Least Loaded Backend
+    
+    Note over Front, Client: 3. Handoff
+    Front-->>Client: Return Signed URL (wss://backend-ip/ws?token=...)
+    
+    Note over Client, Backend: 4. Real-time Stream
+    Client->>Backend: Connect WebSocket
+    Backend->>Client: Upgrade to WebRTC (if supported)
+    Client->>Backend: Stream Microphone (PCM/Opus)
+    Backend->>Client: Stream Agent Audio
+```
 
-<Step>
-### Perception (STT)
-Audio is streamed to the provider (e.g., Deepgram).
-*   **Interim Results:** Real-time text used for interruption checks ("Did the user say 'Stop'?").
-*   **Final Result:** A complete sentence triggering the LLM.
-</Step>
-
-<Step>
-### Cognition (LLM)
-The transcript is appended to the conversation history.
-*   **Context:** `ConversationAIAgentLLMHandler` injects the System Prompt and Tools.
-*   **Inference:** The request is sent to the LLM (e.g., OpenAI).
-*   **Streaming:** Tokens are received one by one to reduce Time-To-First-Byte.
-</Step>
-
-<Step>
-### Synthesis (TTS)
-As text tokens arrive from the LLM, they are buffered into sentences.
-*   **Generation:** Sent to the TTS provider (e.g., ElevenLabs).
-*   **Caching:** The system checks if this exact audio has been generated before. If yes, it pulls from Redis/S3.
-</Step>
-
-<Step>
-### Egress (Audio Output)
-The generated audio bytes are mixed with any [Background Audio](/build/agent/optimization#environment) and streamed back to the client.
-</Step>
-</Steps>
+<Callout type="info" title="Latency Advantage">
+  Web Sessions are significantly faster than Telephony scenarios because there is no Carrier middleware (Twilio/Telnyx) processing the audio packets. The browser speaks directly to the Iqra Backend.
+</Callout>
